@@ -1,8 +1,8 @@
 ---
-title: "rddj-template"
-subtitle: "My analysis"
-author: "My Name"
-date: "January 2020"
+title: "Data Analysis for Business, Economics and Policy"
+subtitle: "Case studies"
+author: "Fernando Millan Villalobos"
+date: "July 2021"
 output:
   html_document:
     code_folding: show
@@ -35,7 +35,7 @@ knitr::opts_chunk$set(
 # CONFIG
 user_name <- "fernandomillanvillalobos" # your Git username (only needed if
 # you want to deploy to GH pages)
-project_name <- "rddj-template" # adapt!
+project_name <- "dabep" # adapt!
 package_date <- "2021-06-01" # date of the CRAN snapshot that
 # the checkpoint package uses
 r_version <- "4.1.0" # R-Version to use
@@ -216,51 +216,20 @@ source("scripts/outliers.R")
 ```
 
 # Introduction
-# Data Importing
-# Data Pre-Processing
-# Exploratory Data Analysis (EDA)
-## Data Summarization
-## Data Visualization
 
-# IO test
 
-```{r, echo=TRUE, message=FALSE, warning=FALSE}
-x <- read.csv2("input/test.csv", sep = ",")
-x
-write.csv2(x, "output/abc.csv", row.names = F)
-write.csv2(x, "output/xyz.csv", row.names = F)
-# the following file would be ignored by Git if saved into the ignore folder
-# see README for further information
-# write.csv2(x, "output/ignore/fgh.csv", row.names = F)
-```
-
-# Some plot
-
-```{r, echo=TRUE, message=FALSE, warning=FALSE}
-set.seed(123)
-x <- rnorm(1000)
-y <- x * 2 + rnorm(1000)
-df <- data.frame(x, y)
-ggplot(df) +
-  geom_point(aes(x = x, y = y)) +
-  geom_smooth(aes(x = x, y = y)) +
-  labs(title = "The correlation between x and y", 
-       subtitle = "A ggplot2 approach", 
-       caption = "source: a pseudo-number generator with seed 123") +
-  theme_minimal()
-``` 
 
 # Linting
 
 The code in this RMarkdown is linted with the [lintr package](https://github.com/jimhester/lintr), which is based on the  [tidyverse style guide](http://style.tidyverse.org/). 
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE, results='hide'}
-lintr::lint("main.Rmd", linters =
-              lintr::with_defaults(
-                commented_code_linter = NULL,
-                trailing_whitespace_linter = NULL
-                )
-            )
+# lintr::lint("main.Rmd", linters =
+#               lintr::with_defaults(
+#                 commented_code_linter = NULL,
+#                 trailing_whitespace_linter = NULL
+#                 )
+#             )
 # if you have additional scripts and want them to be linted too, add them here
 # lintr::lint("scripts/my_script.R")
 ```
