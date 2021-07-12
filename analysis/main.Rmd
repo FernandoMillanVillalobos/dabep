@@ -151,6 +151,11 @@ library(waldo) # compare
 library(psych) # some useful funs 
 library(ggrepel) # text labels
 library(skimr) # data quality 
+library(tidyverse)
+library(haven)
+library(Hmisc)
+library(desc)
+library(reshape2)
 library(janitor)", # names
 file = "manifest.R")
 ```
