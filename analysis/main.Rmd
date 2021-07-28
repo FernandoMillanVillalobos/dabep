@@ -1,5 +1,5 @@
 ---
-title: "Data Analysis for Business, Economics and Policy"
+title: "hotels_raw Analysis for Business, Economics and Policy"
 subtitle: "Case studies"
 author: "Fernando Millan Villalobos"
 date: "July 2021"
@@ -51,29 +51,29 @@ This report was generated on `r Sys.time()`. R version: `r paste0(version$major,
 
 ...
 
-## R-Script & data
+## R-Script & hotels_raw
 
-The preprocessing and analysis of the data was conducted in the [R project for statistical computing](https://www.r-project.org/). The RMarkdown script used to generate this document and all the resulting data can be downloaded [under this link](http://`r user_name`.github.io/`r project_name`/). Through executing `main.Rmd`, the herein described process can be reproduced and this document can be generated. In the course of this, data from the folder `input` will be processed and results will be written to `output`. The html on-line version of the analysis can be accessed through this [link](https://`r user_name`.github.io/`r project_name`/). 
+The preprocessing and analysis of the hotels_raw was conducted in the [R project for statistical computing](https://www.r-project.org/). The RMarkdown script used to generate this document and all the resulting hotels_raw can be downloaded [under this link](http://%60r%20user_name%60.github.io/%60r%20project_name%60/). Through executing `main.Rmd`, the herein described process can be reproduced and this document can be generated. In the course of this, hotels_raw from the folder `input` will be processed and results will be written to `output`. The html on-line version of the analysis can be accessed through this [link](https://%60r%20user_name%60.github.io/%60r%20project_name%60/).
 
 ## GitHub
 
-The code for the herein described process can also be freely downloaded from [https://github.com/`r user_name`/`r project_name`](https://github.com/`r user_name`/`r project_name`). 
+The code for the herein described process can also be freely downloaded from [https://github.com/`r user_name`/`r project_name`](https://github.com/%60r%20user_name%60/%60r%20project_name%60).
 
 ## License
 
 ...
 
-## Data description of output files
+## hotels_raw description of output files
 
 #### `abc.csv` (Example)
 
-| Attribute | Type | Description |
-|-------|------|-----------------------------------------------------------------------------|
-| a | Numeric | ... |
-| b | Numeric | ... |
-| c | Numeric |  ... |
+| Attribute | Type    | Description |
+|-----------|---------|-------------|
+| a         | Numeric | ...         |
+| b         | Numeric | ...         |
+| c         | Numeric | ...         |
 
-#### `xyz.csv` 
+#### `xyz.csv`
 
 ...
 
@@ -85,7 +85,7 @@ detach_all_packages <- function() {
                              "graphics",
                              "grDevices",
                              "utils",
-                             "datasets",
+                             "hotels_rawsets",
                              "methods",
                              "base")
   basic_packages <- paste("package:", basic_packages_blank, sep = "")
@@ -142,7 +142,7 @@ library(tidyverse, warn.conflicts = FALSE) # ggplot2, dplyr, tidyr, readr, purrr
 library(scales) # scales for ggplot2
 library(jsonlite) # json
 library(lintr) # code linting
-library(sf) # spatial data handling
+library(sf) # spatial hotels_raw handling
 library(rmarkdown)
 library(data.table)
 library(cowplot) # theme
@@ -150,12 +150,13 @@ library(extrafont)
 library(waldo) # compare
 library(psych) # some useful funs 
 library(ggrepel) # text labels
-library(skimr) # data quality 
+library(skimr) # hotels_raw quality 
 library(tidyverse)
 library(haven)
 library(Hmisc)
 library(desc)
 library(reshape2)
+library(pastecs)
 library(janitor)", # names
 file = "manifest.R")
 ```
@@ -218,15 +219,268 @@ knitr::read_chunk("scripts/label_log10.R")
 source("scripts/label_log10.R")
 knitr::read_chunk("scripts/outliers.R")
 source("scripts/outliers.R")
+knitr::read_chunk("scripts/theme_bg.R")
+source("scripts/theme_bg.R")
 ```
 
-# Introduction
+# CHAPTER 02: Preparing Data for Analysis
+
+## Entity Resolution: Duplicates, Ambiguous Identification, and Non-entity Rows
+
+One potential issue is having **duplicate observations** in the data table. In the simplest case, duplicates are perfect: the value of all variables is the same. In such cases we have to delete duplicates and leave one data row for each observation only.
+
+A related, but conceptually different issue is to have **ambiguous identification**: the same entity having different IDs across different tables. The task here is to make sure that each entity has the same ID across data tables. That is necessary to link them properly. Entities are frequently identified by names. Unfortunately, though, names may cause issues for two main reasons: they are not unique, and different data tables may have different versions of the same name. This task is called **disambiguation**: making identification of entities not ambiguous.
+
+Yet another issue is having non-entity observations: rows that do not belong to an entity we want in the data table. Before any meaningful analysis can be done, we need to erase such rows from the data table. The important message is this: *assigning unique IDs is important and using numerical ID variables is good practice*.
+
+## Managing missing values
+
+Having missing values for some variables is a frequent problem. There are two different main approaches: First, we can work with observations that have non-missing values for all variables used in the analysis. This is the most natural and most common approach. One version of this approach is to work with observations that make up a well-defined subsample, in which the missing data problem is a lot less severe. The second option is filling in some value for the missing values, such as the average value. This is called **imputation**. When missing values are replaced with some other values, it is good practice to create a binary variable that indicates that the original value was missing. Such a variable is called a **flag**.
+
+When possible, focus on more fully filled variables. Imputation for qualitative variables should be done differently. We should add an additional category for missing values. For ordinal variables, we may also impute the median category and add a new variable denoting that the original value was missing.
+
+## Organizing Data Tables for a Project
+
+It is good practice to organize and store the data at three levels:
+
+-   Raw data tables
+-   Clean and tidy data tables
+-   Workfile for analysis
+
+**Raw data** may come in a single or in multiple files. It should be stored in the original format before anything is done to it. The next step is producing **clean** and **tidy** data from raw data. Often tidy data means multiple data tables. We should always create different data tables for data with different kinds of observations. The last of the three levels is the one on which the analysis is to be done: the **workfile**.
+
+Project overview:
+
+![Project Overview](input/project_organization.png)
+
+```{r ch02_hotels}
+# load hotels_raw
+hotels_raw <- read_csv("input/hotelbookingdata-vienna.csv")
+# load hotels_clean
+hotels_clean <- read_csv("input/hotels-vienna.csv")
+
+# transform values of some variables (through splitting) into valid values
+hotels_raw <- hotels_raw |>
+  tidyr::separate(center1distance, c("distance", NA), sep = " ") |>
+  tidyr::separate(center2distance, c("distance_alter", NA), sep = " ") |>
+  tidyr::separate(accommodationtype, c(NA, "accommodation_type"), sep = "@") |>
+  tidyr::separate(price_night, c(NA, NA, "nnight", NA), sep = " ") |>
+  tidyr::separate(guestreviewsrating, c("rating", NA), sep = " ")
+head(hotels_raw)
+
+# check: frequency table of all values incl. missing values
+tab_rating <- hotels_raw |>
+  dplyr::group_by(rating) |>
+  dplyr::summarise(n = n()) |>
+  dplyr::mutate(
+    percent = round((n / sum(n)), 3),
+    cumpercent = round(cumsum(freq = n / sum(n)), 3)
+  )
+
+tab_rating
+
+tab_rating_reviewcount <- hotels_raw |>
+  dplyr::group_by(rating_reviewcount) |>
+  dplyr::summarise(n = n()) |>
+  dplyr::mutate(
+    percent = round((n / sum(n)), 3),
+    cumpercent = round(cumsum(freq = n / sum(n)), 3)
+  )
+
+tab_rating_reviewcount
+
+hotels_raw <- hotels_raw |> 
+  dplyr::mutate(rating_count = as.numeric(rating_reviewcount))
+
+Hmisc::describe(hotels_raw$rating_count)
+
+# rename variables
+hotels_raw <- hotels_raw |> 
+  dplyr::rename(
+  ratingta = rating2_ta, 
+  ratingta_count = rating2_ta_reviewcount,
+  country = addresscountryname, 
+  city = s_city, stars = starrating
+)
 
 
+# check: key variables
+tab_stars <- hotels_raw |>
+  dplyr::group_by(stars) |>
+  dplyr::summarise(n = n()) |>
+  dplyr::mutate(
+    percent = round((n / sum(n)), 3),
+    cumpercent = round(cumsum(freq = n / sum(n)), 3)
+  )
 
+tab_stars
+
+tab_rating <- hotels_raw |>
+  dplyr::group_by(rating) |>
+  dplyr::summarise(n = n()) |>
+  dplyr::mutate(
+    percent = round((n / sum(n)), 3),
+    cumpercent = round(cumsum(freq = n / sum(n)), 3)
+  )
+
+tab_rating
+
+# look for perfect duplicates
+hotels_raw <- hotels_raw |> 
+  dplyr::arrange(hotel_id)
+
+# filtering duplicates rows by IDs and selecting key variables to check
+hotels_raw |>
+  dplyr::group_by(hotel_id) |>
+  dplyr::filter(n() > 1) |> 
+  dplyr::select(c(hotel_id, accommodation_type, price, distance, stars, rating, rating_count))
+
+# getting rid of all duplicates (perfect duplicates)
+hotels_raw <- hotels_raw |> 
+  dplyr::distinct()
+
+# handling missing values in text
+# checking NAs values
+summary(hotels_raw)
+
+# making a summary of the missing values
+summary_df <- t(stat.desc(hotels_raw))
+summary_df
+
+# creating a flag variable for missing values
+hotels_raw <- hotels_raw |> 
+  dplyr::mutate(misrating = ifelse(is.na(rating), 1, 0))
+
+# counting all missing values
+table(hotels_raw$misrating)
+
+# looking missing values number per accomodation type
+addmargins(table(hotels_raw$accommodation_type, hotels_raw$misrating))
+
+# looking at the relation between missing values and price (mean)
+hotels_raw |>
+  dplyr::group_by(accommodation_type, misrating) |>
+  dplyr::summarise(mean(price))
+
+# spotting the exceptional case for "Hotels"
+hotels_raw |>
+  dplyr::filter((misrating == 1) & (accommodation_type == "Hotel")) |>
+  dplyr::select(hotel_id, accommodation_type, price, distance, stars, rating, rating_count) |>
+  dplyr::slice(1)
+
+hotels_raw
+hotels_clean
+```
+
+```{r ch02_football}
+# load data
+games <- read_csv("input/epl_games.csv")
+team_games <- read_csv("input/epl-teams-games.csv")
+managers <- read_csv("input/football_managers.csv")
+merged <- read_csv("input/football_managers_workfile.csv")
+
+dplyr::glimpse(games)
+dplyr::glimpse(team_games)
+dplyr::glimpse(managers)
+dplyr::glimpse(merged)
+
+# look at basic data
+games <- games |>
+  dplyr::arrange(team_home)
+games
+
+games <- games |>
+  dplyr::arrange(season, team_home)
+games
+
+games <- games |>
+ dplyr::filter(season == 2016)
+games
+
+# at team-game level
+team_games <- team_games |>
+  dplyr::arrange(team)
+team_games
+
+team_games <- team_games |>
+  dplyr::arrange(season, team)
+
+team_games <- team_games |>
+  dplyr::filter(season == 2016) |>
+  dplyr::arrange(date)
+team_games
+
+Hmisc::describe(merged$manager_id)
+
+# finding the most successful managers
+# arranging per season and team
+merged <-  merged |>
+  arrange(season, team)
+merged
+
+# considering average points per game as a measure of success
+# 1. looking at the number of games managed per manager
+games <- merged |>
+  group_by(team, manager_id, manager_name) |>
+  summarise(manager_games = n())
+games
+
+# 2. adding up the points earned over a career at a team (if manager worked for two teams, we consider it two cases)
+points <- merged |>
+  group_by(team, manager_id, manager_name) |>
+  summarise(manager_points = sum(points))
+points
+
+# 3. once we have games and points, we divide total points by the number of games
+avg_points <- merge(games, points, by = c("manager_id", "team", "manager_name")) |>
+  group_by(team, manager_id, manager_name) |>
+  mutate(manager_avg_points = (manager_points / manager_games)) |>
+  arrange(manager_avg_points)
+avg_points
+
+# 4. ranking the results
+avg_points <- avg_points |>
+  arrange(-manager_avg_points)
+avg_points
+
+# 5. looking at those with at least 2 points per game
+top_managers <-  avg_points |>
+  filter(manager_avg_points >= 2)
+top_managers
+
+# 6. denoting caretakers (less than 18 games)
+top_managers <- top_managers |>
+  mutate(
+    manager_avg_points0 = ifelse(manager_games < 18, manager_avg_points, NA),
+    manager_avg_points1 = ifelse(manager_games > 18, manager_avg_points, NA)
+  )
+top_managers
+
+# adding new variable for plotting
+top_managers <- top_managers |>
+  mutate(fill = case_when(
+    manager_games < 18 ~ "1",
+    manager_games > 18 ~ "0"
+  ))
+top_managers
+
+# plotting the results
+p1 <- top_managers |>
+  ggplot(aes(x = reorder(manager_name, manager_avg_points), y = manager_avg_points, fill = fill, alpha = fill)) +
+  geom_col(show.legend = F) +
+  ylab("Average points per game") +
+  xlab("Manager name") +
+  scale_fill_manual(values = c(color[1], color[4])) +
+  scale_alpha_manual(values = c(0.8, 0.3)) +
+  scale_y_continuous(expand = c(0.01, 0.01), limits = c(0, 3), breaks = seq(0, 3, 0.3)) +
+  coord_flip() +
+  theme_bg() +
+  cowplot::background_grid(major = "x", minor = "none")
+p1
+```
 # Linting
 
-The code in this RMarkdown is linted with the [lintr package](https://github.com/jimhester/lintr), which is based on the  [tidyverse style guide](http://style.tidyverse.org/). 
+The code in this RMarkdown is linted with the [lintr package](https://github.com/jimhester/lintr), which is based on the [tidyverse style guide](http://style.tidyverse.org/).
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE, results='hide'}
 # lintr::lint("main.Rmd", linters =
