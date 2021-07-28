@@ -455,6 +455,7 @@ p1 <- top_managers |>
   cowplot::background_grid(major = "x", minor = "none")
 p1
 ```
+
 # Linting
 
 The code in this RMarkdown is linted with the [lintr package](https://github.com/jimhester/lintr), which is based on the [tidyverse style guide](http://style.tidyverse.org/).
