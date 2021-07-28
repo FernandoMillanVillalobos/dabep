@@ -1,5 +1,5 @@
 ---
-title: "hotels_raw Analysis for Business, Economics and Policy"
+title: "Data Analysis for Business, Economics and Policy"
 subtitle: "Case studies"
 author: "Fernando Millan Villalobos"
 date: "July 2021"
@@ -51,7 +51,7 @@ This report was generated on `r Sys.time()`. R version: `r paste0(version$major,
 
 ...
 
-## R-Script & hotels_raw
+## R-Script & Data
 
 The preprocessing and analysis of the hotels_raw was conducted in the [R project for statistical computing](https://www.r-project.org/). The RMarkdown script used to generate this document and all the resulting hotels_raw can be downloaded [under this link](http://%60r%20user_name%60.github.io/%60r%20project_name%60/). Through executing `main.Rmd`, the herein described process can be reproduced and this document can be generated. In the course of this, hotels_raw from the folder `input` will be processed and results will be written to `output`. The html on-line version of the analysis can be accessed through this [link](https://%60r%20user_name%60.github.io/%60r%20project_name%60/).
 
@@ -63,7 +63,7 @@ The code for the herein described process can also be freely downloaded from [ht
 
 ...
 
-## hotels_raw description of output files
+## Data description of output files
 
 #### `abc.csv` (Example)
 
@@ -277,8 +277,6 @@ tab_rating <- hotels_raw |>
     cumpercent = round(cumsum(freq = n / sum(n)), 3)
   )
 
-tab_rating
-
 tab_rating_reviewcount <- hotels_raw |>
   dplyr::group_by(rating_reviewcount) |>
   dplyr::summarise(n = n()) |>
@@ -286,8 +284,6 @@ tab_rating_reviewcount <- hotels_raw |>
     percent = round((n / sum(n)), 3),
     cumpercent = round(cumsum(freq = n / sum(n)), 3)
   )
-
-tab_rating_reviewcount
 
 hotels_raw <- hotels_raw |> 
   dplyr::mutate(rating_count = as.numeric(rating_reviewcount))
@@ -313,8 +309,6 @@ tab_stars <- hotels_raw |>
     cumpercent = round(cumsum(freq = n / sum(n)), 3)
   )
 
-tab_stars
-
 tab_rating <- hotels_raw |>
   dplyr::group_by(rating) |>
   dplyr::summarise(n = n()) |>
@@ -322,8 +316,6 @@ tab_rating <- hotels_raw |>
     percent = round((n / sum(n)), 3),
     cumpercent = round(cumsum(freq = n / sum(n)), 3)
   )
-
-tab_rating
 
 # look for perfect duplicates
 hotels_raw <- hotels_raw |> 
@@ -367,10 +359,9 @@ hotels_raw |>
   dplyr::filter((misrating == 1) & (accommodation_type == "Hotel")) |>
   dplyr::select(hotel_id, accommodation_type, price, distance, stars, rating, rating_count) |>
   dplyr::slice(1)
-
-hotels_raw
-hotels_clean
 ```
+
+## Finding the most successful managers
 
 ```{r ch02_football}
 # load data
@@ -387,20 +378,16 @@ dplyr::glimpse(merged)
 # look at basic data
 games <- games |>
   dplyr::arrange(team_home)
-games
 
 games <- games |>
   dplyr::arrange(season, team_home)
-games
 
 games <- games |>
  dplyr::filter(season == 2016)
-games
 
 # at team-game level
 team_games <- team_games |>
   dplyr::arrange(team)
-team_games
 
 team_games <- team_games |>
   dplyr::arrange(season, team)
@@ -408,61 +395,51 @@ team_games <- team_games |>
 team_games <- team_games |>
   dplyr::filter(season == 2016) |>
   dplyr::arrange(date)
-team_games
 
 Hmisc::describe(merged$manager_id)
 
-# finding the most successful managers
 # arranging per season and team
-merged <-  merged |>
-  arrange(season, team)
-merged
+merged <- merged |>
+  dplyr::arrange(season, team)
 
 # considering average points per game as a measure of success
 # 1. looking at the number of games managed per manager
 games <- merged |>
-  group_by(team, manager_id, manager_name) |>
-  summarise(manager_games = n())
-games
+  dplyr::group_by(team, manager_id, manager_name) |>
+  dplyr::summarise(manager_games = n())
 
 # 2. adding up the points earned over a career at a team (if manager worked for two teams, we consider it two cases)
 points <- merged |>
-  group_by(team, manager_id, manager_name) |>
-  summarise(manager_points = sum(points))
-points
+  dplyr::group_by(team, manager_id, manager_name) |>
+  dplyr::summarise(manager_points = sum(points))
 
 # 3. once we have games and points, we divide total points by the number of games
 avg_points <- merge(games, points, by = c("manager_id", "team", "manager_name")) |>
-  group_by(team, manager_id, manager_name) |>
-  mutate(manager_avg_points = (manager_points / manager_games)) |>
-  arrange(manager_avg_points)
-avg_points
+  dplyr::group_by(team, manager_id, manager_name) |>
+  dplyr::mutate(manager_avg_points = (manager_points / manager_games)) |>
+  dplyr::arrange(manager_avg_points)
 
 # 4. ranking the results
 avg_points <- avg_points |>
-  arrange(-manager_avg_points)
-avg_points
+  dplyr::arrange(-manager_avg_points)
 
 # 5. looking at those with at least 2 points per game
 top_managers <-  avg_points |>
-  filter(manager_avg_points >= 2)
-top_managers
+  dplyr::filter(manager_avg_points >= 2)
 
 # 6. denoting caretakers (less than 18 games)
 top_managers <- top_managers |>
-  mutate(
+  dplyr::mutate(
     manager_avg_points0 = ifelse(manager_games < 18, manager_avg_points, NA),
     manager_avg_points1 = ifelse(manager_games > 18, manager_avg_points, NA)
   )
-top_managers
 
 # adding new variable for plotting
 top_managers <- top_managers |>
-  mutate(fill = case_when(
+  dplyr::mutate(fill = case_when(
     manager_games < 18 ~ "1",
     manager_games > 18 ~ "0"
   ))
-top_managers
 
 # plotting the results
 p1 <- top_managers |>
