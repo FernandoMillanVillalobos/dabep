@@ -27,7 +27,7 @@ knit: (function(inputFile, encoding) {
 ## as well as the output. To override for a particular chunk
 ## use echo = FALSE in its options.
 knitr::opts_chunk$set(
-   echo=TRUE, message=FALSE, warning=FALSE
+  echo = TRUE, message = FALSE, warning = FALSE
 )
 ```
 
@@ -81,23 +81,28 @@ The code for the herein described process can also be freely downloaded from [ht
 
 ```{r, echo=FALSE}
 detach_all_packages <- function() {
-  basic_packages_blank <-  c("stats",
-                             "graphics",
-                             "grDevices",
-                             "utils",
-                             "hotels_rawsets",
-                             "methods",
-                             "base")
+  basic_packages_blank <- c(
+    "stats",
+    "graphics",
+    "grDevices",
+    "utils",
+    "hotels_rawsets",
+    "methods",
+    "base"
+  )
   basic_packages <- paste("package:", basic_packages_blank, sep = "")
 
   package_list <- search()[
-    ifelse(unlist(gregexpr("package:", search())) == 1, TRUE, FALSE)]
+    ifelse(unlist(gregexpr("package:", search())) == 1, TRUE, FALSE)
+  ]
 
   package_list <- setdiff(package_list, basic_packages)
 
-  if (length(package_list) > 0)  for (package in package_list) {
-    detach(package, character.only = TRUE, unload = TRUE)
-    print(paste("package ", package, " detached", sep = ""))
+  if (length(package_list) > 0) {
+    for (package in package_list) {
+      detach(package, character.only = TRUE, unload = TRUE)
+      print(paste("package ", package, " detached", sep = ""))
+    }
   }
 }
 
@@ -148,17 +153,20 @@ library(data.table)
 library(cowplot) # theme
 library(extrafont)
 library(waldo) # compare
-library(psych) # some useful funs 
+library(psych) # some useful funs
 library(ggrepel) # text labels
-library(skimr) # hotels_raw quality 
+library(skimr) # hotels_raw quality
 library(tidyverse)
 library(haven)
 library(Hmisc)
 library(desc)
 library(reshape2)
 library(pastecs)
+library(patchwork)
+library(xtable)
 library(janitor)", # names
-file = "manifest.R")
+  file = "manifest.R"
+)
 ```
 
 ## Install packages
@@ -172,10 +180,11 @@ if (!require(checkpoint)) {
     require(devtools)
   }
   devtools::install_github("RevolutionAnalytics/checkpoint",
-                           ref = "v0.3.2", # could be adapted later,
-                           # as of now (beginning of July 2017
-                           # this is the current release on CRAN)
-                           repos = "http://cran.us.r-project.org")
+    ref = "v0.3.2", # could be adapted later,
+    # as of now (beginning of July 2017
+    # this is the current release on CRAN)
+    repos = "http://cran.us.r-project.org"
+  )
   require(checkpoint)
 }
 # nolint start
@@ -184,12 +193,14 @@ if (!dir.exists("~/.checkpoint")) {
 }
 # nolint end
 # install packages for the specified CRAN snapshot date
-checkpoint(snapshot_date = package_date,
-           project = path_to_wd,
-           verbose = T,
-           scanForPackages = T,
-           use.knitr = F,
-           R.version = r_version)
+checkpoint(
+  snapshot_date = package_date,
+  project = path_to_wd,
+  verbose = T,
+  scanForPackages = T,
+  use.knitr = F,
+  R.version = r_version
+)
 rm(package_date)
 ```
 
@@ -204,7 +215,7 @@ sessionInfo()
 ## Load additional scripts
 
 ```{r, echo=TRUE, message=FALSE, warning=FALSE}
-# if you want to outsource logic to other script files, see README for 
+# if you want to outsource logic to other script files, see README for
 # further information
 # Load all visualizations functions as separate scripts
 knitr::read_chunk("scripts/dviz.supp.R")
@@ -233,7 +244,7 @@ A related, but conceptually different issue is to have **ambiguous identificatio
 
 Yet another issue is having non-entity observations: rows that do not belong to an entity we want in the data table. Before any meaningful analysis can be done, we need to erase such rows from the data table. The important message is this: *assigning unique IDs is important and using numerical ID variables is good practice*.
 
-## Managing missing values
+## Managing Missing Values
 
 Having missing values for some variables is a frequent problem. There are two different main approaches: First, we can work with observations that have non-missing values for all variables used in the analysis. This is the most natural and most common approach. One version of this approach is to work with observations that make up a well-defined subsample, in which the missing data problem is a lot less severe. The second option is filling in some value for the missing values, such as the average value. This is called **imputation**. When missing values are replaced with some other values, it is good practice to create a binary variable that indicates that the original value was missing. Such a variable is called a **flag**.
 
@@ -285,19 +296,19 @@ tab_rating_reviewcount <- hotels_raw |>
     cumpercent = round(cumsum(freq = n / sum(n)), 3)
   )
 
-hotels_raw <- hotels_raw |> 
+hotels_raw <- hotels_raw |>
   dplyr::mutate(rating_count = as.numeric(rating_reviewcount))
 
 Hmisc::describe(hotels_raw$rating_count)
 
 # rename variables
-hotels_raw <- hotels_raw |> 
+hotels_raw <- hotels_raw |>
   dplyr::rename(
-  ratingta = rating2_ta, 
-  ratingta_count = rating2_ta_reviewcount,
-  country = addresscountryname, 
-  city = s_city, stars = starrating
-)
+    ratingta = rating2_ta,
+    ratingta_count = rating2_ta_reviewcount,
+    country = addresscountryname,
+    city = s_city, stars = starrating
+  )
 
 
 # check: key variables
@@ -318,17 +329,17 @@ tab_rating <- hotels_raw |>
   )
 
 # look for perfect duplicates
-hotels_raw <- hotels_raw |> 
+hotels_raw <- hotels_raw |>
   dplyr::arrange(hotel_id)
 
 # filtering duplicates rows by IDs and selecting key variables to check
 hotels_raw |>
   dplyr::group_by(hotel_id) |>
-  dplyr::filter(n() > 1) |> 
+  dplyr::filter(n() > 1) |>
   dplyr::select(c(hotel_id, accommodation_type, price, distance, stars, rating, rating_count))
 
 # getting rid of all duplicates (perfect duplicates)
-hotels_raw <- hotels_raw |> 
+hotels_raw <- hotels_raw |>
   dplyr::distinct()
 
 # handling missing values in text
@@ -340,7 +351,7 @@ summary_df <- t(stat.desc(hotels_raw))
 summary_df
 
 # creating a flag variable for missing values
-hotels_raw <- hotels_raw |> 
+hotels_raw <- hotels_raw |>
   dplyr::mutate(misrating = ifelse(is.na(rating), 1, 0))
 
 # counting all missing values
@@ -361,7 +372,7 @@ hotels_raw |>
   dplyr::slice(1)
 ```
 
-## Finding the most successful managers
+## Finding the Most Successful Managers
 
 ```{r ch02_football}
 # load data
@@ -383,7 +394,7 @@ games <- games |>
   dplyr::arrange(season, team_home)
 
 games <- games |>
- dplyr::filter(season == 2016)
+  dplyr::filter(season == 2016)
 
 # at team-game level
 team_games <- team_games |>
@@ -424,7 +435,7 @@ avg_points <- avg_points |>
   dplyr::arrange(-manager_avg_points)
 
 # 5. looking at those with at least 2 points per game
-top_managers <-  avg_points |>
+top_managers <- avg_points |>
   dplyr::filter(manager_avg_points >= 2)
 
 # 6. denoting caretakers (less than 18 games)
@@ -455,6 +466,203 @@ p1 <- top_managers |>
   cowplot::background_grid(major = "x", minor = "none")
 p1
 ```
+
+# CHAPTER 03: Exploratory Data Analysis (EDA)
+
+## Frequencies and Probabilities
+The __absolute frequency__, or count, of a value of a variable is simply the number of observations with that particular value in the data. The __relative frequency__ is the frequency expressed in relative, or percentage, terms: the proportion of observations with that particular value among all observations in the data. If a variable has missing values, this proportion can be relative to all observations including the missing values or only to observations with missing values.
+
+__Probability__ is a general concept that is closely related to relative frequency. Probability is a measure of the likelihood of an event. In the context of data, an event is _the occurrence of a particular value of a variable_. __The probability of an event is its relative frequency.__ Probabilities are always between zero and one. We denote the probability of an event as $$P(event)$$, so that $$0 <= P(event) <= 1$$. Considering a single event, it either happens or does not. These two are mutually exclusive: the probability of an event happening and it also not happening is zero: $$P(event&~even) = 0$$.
+
+## Visualizing Distributions
+Frequencies are summarized by distributions. The __distribution__ of a variable gives the frequency of each value of the variable in the data, either in terms of absolute frequency (number of observations), or relative frequency (proportion or percent).
+
+The simplest way to visualize a distribution is the __histogram__. For variables with many potential values, showing bars for each value is usually uninformative. Instead, it's better to group the many values in fewer groupings or bins. Visual inspection of a histogram can inform us about the number and location of __modes__: these are peaks in the distribution that stand out from their immediate neighborhood.
+
+__Density plots__, also called __kernel density estimates__, are an alternative to histograms for variables with many values.
+
+## Extreme Values
+What it should be do with observations with extreme values of a variable depends on the role of the variable in our analysis. We distinguish a _y_ variable and one or more _x_ variables in the analysis. Typically, our analysis will aim to uncover patterns in how values of _y_ tend to differ for observations that have different values of _x_. __Discarding observations with extreme _x_ values narrows the scope of the comparisons.__ In contrast, discarding observations with extreme _y_ values changes the result of the comparisons.
+
+```{r distributions}
+# load data
+vienna <- read_csv("input/hotels-vienna.csv")
+
+# looking at the frequencies of all types of accommodation
+table(vienna$accommodation_type)
+
+# filtering accommodation: Hotel
+vienna_hotels <- vienna |>
+  dplyr::filter(accommodation_type == "Hotel")
+
+# plotting distributions
+# Absolute frequency (count)
+p1 <- ggplot(data = vienna_hotels, aes(x = stars)) +
+  geom_bar(color = color.outline, fill = color[1], alpha = 0.8, na.rm = T) +
+  geom_text(stat = "count", aes(label = ..count..), vjust = -0.5, size = 2.5) +
+  labs(x = "Star rating (N. stars)", y = "Frequency") +
+  expand_limits(x = 0.01, y = 0.01) +
+  scale_x_continuous(expand = c(0.01, 0.01), limits = c(0.5, 5.5), breaks = seq(1, 5, 0.5)) +
+  scale_y_continuous(expand = c(0.00, 0.00), limits = c(0, 140), breaks = seq(0, 140, 20)) +
+  theme_bg()
+
+# Relative frequency (percent)
+p2 <- ggplot(data = vienna_hotels, aes(x = stars, y = (..count..) / sum(..count..))) +
+  geom_bar(color = color.outline, fill = color[1], alpha = 0.8, na.rm = T) +
+  geom_text(stat = "count", aes(label = round((..count..) / sum(..count..) * 100, 1)), vjust = -0.5, size = 2.5) +
+  labs(x = "Star rating (N. stars)", y = "Percent") +
+  expand_limits(x = 0.01, y = 0.01) +
+  scale_x_continuous(expand = c(0.01, 0.01), limits = c(0.5, 5.5), breaks = seq(1, 5, 0.5)) +
+  scale_y_continuous(expand = c(0.00, 0.00), limits = c(0, 0.5), breaks = seq(0, 0.5, 0.1), labels = scales::percent_format(accuracy = 1)) +
+  theme_bg()
+
+p1|p2
+
+# filtering 3-4 stars, without 1000 euro extreme value
+vienna_hotels <- vienna |>
+  dplyr::filter(accommodation_type == "Hotel") |>
+  dplyr::filter(stars >= 3 & stars <= 4) |>
+  dplyr::filter(!is.na(stars)) |>
+  dplyr::filter(price <= 1000)
+
+table(vienna_hotels$city)
+table(vienna_hotels$stars)
+
+# plotting hotel price (different bindwidth)
+p3 <- ggplot(data = vienna_hotels, aes(x = price)) +
+  geom_histogram_da(type = "frequency", binwidth = 10) +
+  labs(x = "Price (US dollars)", y = "Frequency") +
+  expand_limits(x = 0.01, y = 0.01) +
+  coord_cartesian(clip = "off") +
+  scale_x_continuous(expand = c(0.01, 0.01), limits = c(0, 500), breaks = seq(0, 500, by = 50)) +
+  scale_y_continuous(expand = c(0.00, 0.00), limits = c(0, 40), breaks = seq(0, 40, by = 5)) +
+  theme_bg()
+
+p4 <- ggplot(data = vienna_hotels, aes(x = price)) +
+  geom_histogram_da(type = "frequency", binwidth = 40) +
+  labs(x = "Price (US dollars)", y = "Frequency") +
+  expand_limits(x = 0.01, y = 0.01) +
+  coord_cartesian(clip = "off") +
+  scale_x_continuous(expand = c(0.01, 0.01), limits = c(0, 500), breaks = seq(0, 500, by = 50)) +
+  scale_y_continuous(expand = c(0.00, 0.00), limits = c(0, 40), breaks = seq(0, 40, by = 5)) +
+  theme_bg()
+
+p5 <- ggplot(data = vienna_hotels, aes(x = price)) +
+  geom_histogram_da(type = "frequency", binwidth = 80) +
+  labs(x = "Price (US dollars)", y = "Frequency") +
+  expand_limits(x = 0.01, y = 0.01) +
+  coord_cartesian(clip = "off") +
+  scale_x_continuous(expand = c(0.01, 0.01), limits = c(0, 500), breaks = seq(0, 500, by = 50)) +
+  scale_y_continuous(expand = c(0.00, 0.00), limits = c(0, 40), breaks = seq(0, 40, by = 5)) +
+  theme_bg()
+
+p6 <- ggplot(data = vienna_hotels, aes(x = price)) +
+  geom_histogram_da(type = "frequency", binwidth = 20) +
+  labs(x = "Price (US dollars)", y = "Frequency") +
+  expand_limits(x = 0.01, y = 0.01) +
+  coord_cartesian(clip = "off") +
+  scale_x_continuous(expand = c(0.01, 0.01), limits = c(0, 500), breaks = seq(0, 500, by = 50)) +
+  scale_y_continuous(expand = c(0.00, 0.00), limits = c(0, 40), breaks = seq(0, 40, by = 5)) +
+  theme_bg()
+
+(p3 | p4 | p5) / p6
+
+# plotting distance
+p7 <- ggplot(data = vienna_hotels, aes(x = distance)) +
+  geom_histogram_da(type = "frequency", binwidth = 0.5) +
+  labs(x = "Distance to city center (miles)", y = "Frequency") +
+  expand_limits(x = 0.01, y = 0.01) +
+  scale_x_continuous(expand = c(0.01, 0.01), limits = c(0, 14), breaks = seq(0, 14, by = 2)) +
+  scale_y_continuous(expand = c(0.00, 0.00), limits = c(0, 61), breaks = seq(0, 60, by = 10)) +
+  geom_segment(aes(x = 8.2, y = 0, xend = 8.2, yend = 60), color = color[2], size = 1) +
+  # geom_segment(aes(x = 10, y = 40, xend = 8.4, yend = 40), arrow = arrow(length = unit(0.2, "cm")))+
+  annotate("text", x = 11, y = 29, label = "Too far out", size = 2) +
+  annotate("rect", xmin = 8.2, xmax = 14, ymin = 0, ymax = 60, fill = color[4], alpha = 0.1) +
+  theme_bg()
+p7
+
+# looking at the actual place of hotels (included outside the city of Vienna)
+table(vienna_hotels$city_actual)
+
+# filtering 3-4 stars, less than 8miles from center, without 1000 euro extreme value
+vienna_hotels <- vienna |>
+  dplyr::filter(accommodation_type == "Hotel") |>
+  dplyr::filter(stars >= 3 & stars <= 4) |>
+  dplyr::filter(!is.na(stars)) |>
+  dplyr::filter(price <= 1000) |> 
+  dplyr::filter(city_actual == "Vienna")
+```
+
+## Summary Statistics for Quantitative Variables
+While measures of central value (such as mean, median) and spread (such as range, standard deviation) are usually well known, summary statistics that measure __skewness__ are less frequently used. A distribution may be skewed in two ways, having a long left tail or having a long right tail. A long left tail means having a few observations with large values with most observations having larger values. A long right tail means having a few observations with large values with most observations having smaller values. The statistic of skewness compares the mean and the median and is called the __mean-median measure of skewness__. When the distribution is symmetric, its mean and median are the same. When it is skewed with a long right tail, the mean is larger than the median. Conversely, when a distribution is skewed with a long left tail, the mean is smaller than the median. The mean-median measure of skewness captures this intuition. In order to make this measure comparable across various distributions, we use a standardized measure, dividing the difference by the standard deviation: 
+$$ Skewness = \frac{\bar{x} - median[x]}{Std[x]}$$ 
+
+```{r summary_statistics}
+# load data
+hotels_europe_price <- read_csv("input/hotels-europe_price.csv")
+hotels_europe_features <- read_csv("input/hotels-europe_features.csv")
+
+# creating a working data table for analysis
+hotels_europe <- dplyr::left_join(hotels_europe_price, hotels_europe_features, by = "hotel_id")
+
+# filtering for same Vienna data we used + London same date
+hotels_europe_london_viena <- hotels_europe |>
+  dplyr::filter(year == 2017 & month == 11 & weekend == 0) |>
+  dplyr::filter(city %in% c("Vienna", "London")) |>
+  dplyr::filter(accommodation_type == "Hotel") |>
+  dplyr::filter(stars >= 3 & stars <= 4) |>
+  dplyr::filter(!is.na(stars)) |>
+  dplyr::filter(city_actual %in% c("Vienna", "London")) |>
+  dplyr::filter(price <= 600)
+
+# looking at the mean price for both cities
+hotels_europe_london_viena |>
+  dplyr::group_by(city) |>
+  dplyr::summarise(mean_price = mean(price), max = max(price), n = n())
+
+# plotting the distribution of hotel price
+p1 <- ggplot(data = filter(hotels_europe_london_viena, city == "Vienna"), aes(x = price)) +
+  geom_histogram_da(type = "percent", binwidth = 20) +
+  labs(x = "Price (US dollars)", y = "Percent", title = "Vienna") +
+  scale_x_continuous(expand = c(0.01, 0.01), limits = c(0, 500), breaks = seq(0, 500, by = 100)) +
+  scale_y_continuous(expand = c(0.00, 0.00), limits = c(0, 0.3), breaks = seq(0, 0.3, by = 0.1), labels = scales::percent_format()) +
+  theme_bg()
+
+p2 <- ggplot(data = filter(hotels_europe_london_viena, city == "London"), aes(x = price)) +
+  geom_histogram_da(type = "percent", binwidth = 20) +
+  labs(x = "Price (US dollars)", y = "Percent", title = "London") +
+  scale_x_continuous(expand = c(0.01, 0.01), limits = c(0, 500), breaks = seq(0, 500, by = 100)) +
+  scale_y_continuous(expand = c(0.00, 0.00), limits = c(0, 0.3), breaks = seq(0, 0.3, by = 0.1), labels = scales::percent_format()) +
+  theme_bg()
+
+(p1 | p2)
+
+# plotting same data using density plot
+p3 <- ggplot(data = hotels_europe_london_viena, aes(x = price, y = stat(density), color = city)) +
+  geom_line(stat = "density", show.legend = F, na.rm = TRUE) +
+  labs(x = "Price (US dollars)", y = "Density", color = "") +
+  scale_color_manual(
+    name = "",
+    values = c(color[2], color[1]),
+    labels = c("London", "Vienna")
+  ) +
+  scale_y_continuous(expand = c(0.0, 0.0), limits = c(0, 0.015), breaks = seq(0, 0.015, by = 0.003)) +
+  scale_x_continuous(expand = c(0.01, 0.01), limits = c(0, 500), breaks = seq(0, 500, by = 100)) +
+  geom_text(aes(x = 340, y = 0.0026, label = "London"), color = color[2], size = 2.5) +
+  geom_text(aes(x = 170, y = 0.008, label = "Vienna"), color = color[1], size = 2.5) +
+  theme_bg()
+p3
+
+# summarizing all statistics in one table
+hotels_europe_london_viena_tab <- hotels_europe_london_viena |>
+  dplyr::group_by(city) |>
+  dplyr::summarise(
+    n = length(price), mean = mean(price), median = median(price), min = min(price), max = max(price),
+    sd = sd(price), skew = ((mean(price) - median(price)) / sd(price))
+  )
+hotels_europe_london_viena_tab
+```
+
 
 # Linting
 
