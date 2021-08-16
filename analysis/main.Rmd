@@ -23,7 +23,7 @@ knit: (function(inputFile, encoding) {
 ---
 
 ```{r, include=FALSE}
-## By defult, show code for all chunks in the knitted document,
+## By default, show code for all chunks in the knitted document,
 ## as well as the output. To override for a particular chunk
 ## use echo = FALSE in its options.
 knitr::opts_chunk$set(
@@ -733,6 +733,102 @@ pd.DataFrame.from_dict(
     }
 ).round(1)
 ```
+## Theoretical Distributions
+Theoretical distributions are distributions of variables with idealized properties. Instead of showing frequencies in data, they show more abstract probabilities: the likelihood of each value (or each interval of values) in a more abstract setting. That more abstract setting is a hypothetical "data" or "population", or the abstract space of the possible realizations of events.
+
+They can be of great help when we want to understand important characteristics of variables in our data. If a variable in our data is well approximated by a theoretical distribution, we can simply attribute those properties to the variable without having to check those properties over and over. Another reason to know about theoretical distributions is that some of them are useful what happens when we want to generalize from the data we have.
+
+The __normal distribution__ is a pure theoretical construct in the sense that it was derived mathematically from another distribution, the __binomial__. Variables with a normal distribution can in principle take on any value from negative infinity to positive infinity. The histogram of the normal distribution is bell shaped, and is characterized by two __parameters__, usually denoted as $$\mu$$ and standard deviation $$\sigma$$. They refer to the mean ($$\mu$$) and the standard deviation ($$\sigma$$). A special case of the normal distribution is the __standard normal distribution__. It is a normal distribution with parameters $$\mu = 0$$ and $$\sigma = 1$$. If variable _x_ is normally distributed with mean $$\mu$$ and standard deviation $$\sigma$$, its transformed version is distributed standard normal if we take out the mean and divide this difference by the standard deviation: $$\frac{(x-\mu)}{\sigma}$$.
+
+It turns out that when we transform a normally distributed variable by adding or multiplying by a number, the result is another normally distributed variable, with appropriately transformed mean and standard deviation. It also turns out that when we add two normally distributed variables, the  resulting variable is also normally distributed, and its mean is the sum of the means of the two original variables.
+
+Some variables in real life are well approximated by the normal distribution. However, the normal is a bad approximation to real-life variables with extreme values. Extreme values are very unlikely in the normal distribution. Besides the absence of extreme values, symmetry is another feature of the normal distribution that makes it a bad approximation to many economic variables. Earnings, income, wealth, and firm productivity are usually asymmetrically distributed with a long right tails. One theoretical distribution that may be a better approximation to such variables is the lognormal distribution.
+
+The __lognormal distribution__ is very asymmetric, with a long right tail, potentially including many extreme values at the positive end. The lognormal distribution is derived from the normal distribution. If we take a variable that is distributed normally _(x)_ and raise _e_ to its power _(e^x)_, the resulting variable is distributed lognormally. The old variable is the __natural logarithm__ of the new variable. Because we raised _e_ to the power of the original variable, the values of the resulting lognormal variable are always positive. They range between zero and positive infinity (never reaching either). By convention, the parameters of the lognormal are the mean $$\mu$$ and the standard deviation $$\sigma$$ of the original, normally distributed variable, which is the logarithm of the new variable. There are real-life variables that are approximately lognormally distributed. These include distributions of price, income, and firm size. Variables are well approximated by the lognormal if they are the result of many things multiplied together (the natural log of them is thus a sum).
+
+```{r theoretical_distributions}
+# CASE STUDY: Distributions of Body Height and Income
+# load data
+hrs <- read_csv("input/hrs_height_income.csv")
+
+# parsing height var as numeric
+hrs$height <- as.numeric(as.character(hrs$height))
+
+# looking at the overall height distribution
+Hmisc::describe(hrs$height)
+
+# filtering height of women age 55-59 
+filtered_women_height <- hrs |>
+  dplyr::filter(age >= 55 & age < 60 & female == 1 & height > 1.3 & height < 2.1)
+
+Hmisc::describe(filtered_women_height$height)
+
+# plotting women height
+p1 <- ggplot(filtered_women_height, aes(x = height)) +
+  geom_histogram(aes(y = ..density..),
+    binwidth = 0.025, boundary = min(filtered_women_height$height),
+    fill = color[1], color = color.outline, alpha = 0.8, closed = "left"
+  ) +
+  stat_function(
+    fun = dnorm, colour = color[2],
+    args = with(filtered_women_height, c(mean = mean(height), sd = sd(height)))
+  ) +
+  scale_y_continuous("Density",
+    position = "right", expand = c(0, 0), limits = c(0, 6),
+    sec.axis = sec_axis(~ . * 0.025, name = "Percent", breaks = seq(0, 0.15, by = 0.025), labels = percent_format(accuracy = 0.1))
+  ) +
+  theme_bg() +
+  xlab("Height (meters)")
+p1
+
+# filtering income of women age 55-69
+filtered_women_income <-  hrs  |> 
+  dplyr::filter(age >= 55 & age < 60 & female == 1 & hhincome > 1 & hhincome < 1000)
+
+Hmisc::describe(filtered_women_income$hhincome)
+
+# plotting income histogram
+p2 <- ggplot(filtered_women_income, aes(x = hhincome)) +
+  geom_histogram(aes(y = (..count..) / sum(..count..)),
+    binwidth = 20, boundary = 0, closed = "left",
+    fill = color[1], color = color.outline, alpha = 0.8
+  ) +
+  ylab("Percent") +
+  xlab("Household income (thousand USD)") +
+  expand_limits(x = 0.01, y = 0.01) +
+  scale_x_continuous(expand = c(0.01, 0.01), limits = c(0, 1000), breaks = seq(0, 1000, by = 100)) +
+  scale_y_continuous(expand = c(0.00, 0.00), limits = c(0, 0.3), breaks = seq(0, 0.3, by = 0.05), labels = scales::percent_format(accuracy = 1)) +
+  theme_bg()
+p2
+
+# log of household income
+filtered_women_income <- filtered_women_income |>
+  dplyr::mutate(lnincome = log(hhincome))
+
+# plotting log of household income
+p3 <- ggplot(filtered_women_income, aes(x = lnincome)) +
+  geom_histogram(aes(y = ..density..),
+    binwidth = 0.25, boundary = 0, closed = "left",
+    fill = color[1], color = color.outline, alpha = 0.8
+  ) +
+  stat_function(
+    fun = dnorm, colour = color[2],
+    args = with(filtered_women_income, c(mean = mean(lnincome), sd = sd(lnincome)))
+  ) +
+  scale_x_continuous(expand = c(0.01, 0.01), limits = c(0, 8), breaks = seq(0, 8, by = 1)) +
+  scale_y_continuous("Density",
+    position = "right", expand = c(0, 0), limits = c(0, 0.4),
+    sec.axis = sec_axis(~ . * 0.25,
+      name = "Percent", breaks = seq(0, 0.1, by = 0.025),
+      labels = percent_format(accuracy = 0.1)
+    )
+  ) +
+  theme_bg() +
+  ylab("Percent") +
+  xlab("ln(household income, thousand USD)")
+p3
+```
+
 
 # Linting
 
