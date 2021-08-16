@@ -38,7 +38,7 @@ user_name <- "fernandomillanvillalobos" # your Git username (only needed if
 project_name <- "dabep" # adapt!
 package_date <- "2021-06-01" # date of the CRAN snapshot that
 # the checkpoint package uses
-r_version <- "4.1.0" # R-Version to use
+r_version <- "4.1.1" # R-Version to use
 options(Ncpus = 4) # use 4 cores for parallelized installation of packages
 if (r_version != paste0(version$major, ".", version$minor)) {
   stop("ERROR: specified R version does not match currently used.")
@@ -147,7 +147,7 @@ library(tidyverse, warn.conflicts = FALSE) # ggplot2, dplyr, tidyr, readr, purrr
 library(scales) # scales for ggplot2
 library(jsonlite) # json
 library(lintr) # code linting
-library(sf) # spatial hotels_raw handling
+library(sf)
 library(rmarkdown)
 library(data.table)
 library(cowplot) # theme
@@ -155,8 +155,7 @@ library(extrafont)
 library(waldo) # compare
 library(psych) # some useful funs
 library(ggrepel) # text labels
-library(skimr) # hotels_raw quality
-library(tidyverse)
+library(skimr)
 library(haven)
 library(Hmisc)
 library(desc)
@@ -164,6 +163,7 @@ library(reshape2)
 library(pastecs)
 library(patchwork)
 library(xtable)
+library(reticulate)
 library(janitor)", # names
   file = "manifest.R"
 )
@@ -598,6 +598,7 @@ While measures of central value (such as mean, median) and spread (such as range
 $$ Skewness = \frac{\bar{x} - median[x]}{Std[x]}$$ 
 
 ```{r summary_statistics}
+# CASE STUDY: Comparing Hotel Prices in Europe: Vienna vs London
 # load data
 hotels_europe_price <- read_csv("input/hotels-europe_price.csv")
 hotels_europe_features <- read_csv("input/hotels-europe_features.csv")
@@ -661,8 +662,77 @@ hotels_europe_london_viena_tab <- hotels_europe_london_viena |>
     sd = sd(price), skew = ((mean(price) - median(price)) / sd(price))
   )
 hotels_europe_london_viena_tab
-```
 
+# CASE STUDY: Measuring Home Team Advantage in Football
+# load data
+games <- read_csv("input/epl_games.csv")
+
+# looking at 2016/17 season only
+games <- subset(games, season == 2016)
+
+# adding a goal difference variable
+games <- games |>
+  dplyr::mutate(home_goaladv = goals_home - goals_away)
+
+# summary statistics
+summary(games$home_goaladv)
+psych::describe(games$home_goaladv)
+
+# plotting the distribution of the goal difference variable
+p1 <- ggplot(data = games, aes(x = home_goaladv, y = (..count..) / sum(..count..))) +
+  geom_histogram(
+    color = color.outline, fill = theme_colors[1],
+    size = 0.2, alpha = 0.8, show.legend = F, na.rm = TRUE,
+    binwidth = 1
+  ) +
+  geom_text(stat = "count", aes(label = round((..count..) / sum(..count..) * 100, 1)), hjust = 0.5, vjust = -0.5, size = 2) +
+  labs(x = "Goal difference", y = "Share of games (percent)") +
+  scale_x_continuous(expand = c(0.05, 0.05), limits = c(-6, 6), breaks = seq(-6, 6, by = 1)) +
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 0.25), breaks = seq(0, 0.25, by = 0.05), labels = scales::percent_format(accuracy = 5L)) +
+  theme_bg()
+p1
+```
+### Tables
+To produce a good table, one needs to to think about its __usage__, choose __encoding__ and __scaffolding__ accordingly, and may add __annotation__. One important type wants to communicate the main result, or results, of the analysis. A table of this type is called a __result table__, or a communication table. Good communication tables are focused on one message. The other main table type is the __documentation table__. Its aim is to document exploratory data analysis. Documentation tables describe the structure of the data, one or more variables, or some other features such as missing values or extreme values. Such tables are also used to summarize the results of data cleaning and restructuring processes by showing numbers of observations and statistics of important variables for the original data and the data we chose to work with. 
+
+Encoding here means what numbers to present, and in what detail. Documentation tables tend to be large and include everything that is, or may become, important. In contrast, communication tables should be simple and focused. A good practice of encoding is to show totals together with components. In a documentation table with numbers of observations in subgroups in the data, the total number of observations is usually included. Another good practice is to include the number of observations in all tables. The second question of encoding is how much detail the numbers should have in the table. Communication tables should have no more detail than necessary. Usually, documentation tables have numbers in more detail.
+
+```{python summary_statistics_table}
+# We calculated the mean, the standard deviation of the goal difference and the relative frequency of games
+
+# importing the library
+import pandas as pd
+
+# converting R object to a python object
+df = r.games
+df.shape
+
+# calculating the goal difference
+df["home_goaladv"] = df["goals_home"] - df["goals_away"]
+df.head()
+
+# making a table to present the results
+pd.DataFrame.from_dict(
+    {
+        "Statistics": [
+            "Mean",
+            "Standard deviation",
+            "Percent positive",
+            "Percent zero",
+            "Percent negative",
+            "Number of observations",
+        ],
+        "Value": [
+            df["home_goaladv"].describe()["mean"],
+            df["home_goaladv"].describe()["std"],
+            (df["home_goaladv"] > 0).sum() / df["home_goaladv"].shape[0] * 100,
+            (df["home_goaladv"] == 0).sum() / df["home_goaladv"].shape[0] * 100,
+            (df["home_goaladv"] < 0).sum() / df["home_goaladv"].shape[0] * 100,
+            df["home_goaladv"].describe()["count"],
+        ],
+    }
+).round(1)
+```
 
 # Linting
 
