@@ -838,8 +838,8 @@ The other most frequent goal of data analysis is to learn about the effect of a 
 
 In sum, deciding on what's _y_ and what's _x_ in the data is the first step before doing any meaningful analysis.
 
-* For prediction we want to know what value of _y_ to expect for different values of various _x_ variables, such _x_1_, _x_2_,...
-* For causal analysis we want to know what value of _y_ to expect if we changed the value of _x_, often comparing observations that are similar in other variables _(z_1)_, _(z_2)_, ...
+* For prediction we want to know what value of _y_ to expect for different values of various _x_ variables, such $x_1$, $x_2$,...
+* For causal analysis we want to know what value of _y_ to expect if we changed the value of _x_, often comparing observations that are similar in other variables $(z_1)$, $(z_2)$, ...
 
 ```{r patterns_of_association}
 # CASE STUDY: Management quality and firm size: describing patterns of association
@@ -895,20 +895,20 @@ The word statisticians use for comparison is __conditioning__. When we compare t
 When data analysts want to uncover values of _y_ for observations that are different in _x_ but similar in _z_, they do one more step of conditioning: they compare _y_ by _x_ conditional on _z_. That is called __further conditioning__ or a __conditional comparison__. In practice we explore conditional probabilities, conditional means, and conditional distributions.
 
 ### Conditional Probabilities
-The probability of a value of a variable in a data set is its relative frequency (percentage). __Conditional probability__ is the probability of one event if another event happens. The event the conditional probability is about is called the __conditional event__; the other event is called the __conditioning event__. Conditional probabilities are denoted as $P(event_1|event_2)$: the probability of _event_1_ conditional on _event_2_.
+The probability of a value of a variable in a data set is its relative frequency (percentage). __Conditional probability__ is the probability of one event if another event happens. The event the conditional probability is about is called the __conditional event__; the other event is called the __conditioning event__. Conditional probabilities are denoted as $P(event_1\ |\ event_2)$: the probability of $event_1$ conditional on $event_2$.
 
-Joint probabilities are related to conditional probabilities. The __joint probability__ of two events is the probability that both occur: $P(event_1&event_2)$. When two events are mutually exclusive, their joint probability is zero (the two never happen together).
+Joint probabilities are related to conditional probabilities. The __joint probability__ of two events is the probability that both occur: $P(event_1\ \&\ event_2)$. When two events are mutually exclusive, their joint probability is zero (the two never happen together).
 
-Another probability related to two events denotes the likelihood that one event or the other happens. This is the sum of the two probabilities minus their joint probability: $P(event_1 OR event_2) = P(event_1) + P(event_2) - P(event_1&event_2)$. If the two events are mutually exclusive, we subtract zero from the sum of the two probabilities.
+Another probability related to two events denotes the likelihood that one event or the other happens. This is the sum of the two probabilities minus their joint probability: $P(event_1\ OR\  event_2) = P(event_1) + P(event_2) - P(event_1\ \&\ event_2)$. If the two events are mutually exclusive, we subtract zero from the sum of the two probabilities.
 
 The conditional probability can be expressed as the corresponding joint probability divided by the probability of the conditioning event:
-$$P(event_1|event_2) = \frac{P(event_1&event_2)}{P(event_2)}$$
-Two events are __independent__ if the probability of one of the events is the same regardless of whether or not the other event occurs. In the language of conditional probabilities this means that the conditional probabilities are the same as the unconditional probabilities: $P(event_1|event_2) = P(event_1)$ and $P(event_2|event_1) = P(event_2)$. Less intuitive, but also true is that the joint probability of independent events equals the product of their individual probabilities: $P(event_1&event_2) = P(event_1)XP(event_2)$.
+$$P(event_1\ |\ event_2) = \frac{P(event_1\ \&\ event_2)}{P(event_2)}$$
+Two events are __independent__ if the probability of one of the events is the same regardless of whether or not the other event occurs. In the language of conditional probabilities this means that the conditional probabilities are the same as the unconditional probabilities: $P(event_1\ |\ event_2) = P(event_1)$ and $P(event_2\ |\ event_1) = P(event_2)$. Less intuitive, but also true is that the joint probability of independent events equals the product of their individual probabilities: $P(event_1\ \&\ event_2) = P(event_1)\ X\ P(event_2)$.
 
 In data, the events refer to values of variables. Often, the conditional variable, _y_, is a binary variable: _y = 0_ or _y = 1_. Then the conditional probability is the probability that _y = 1_ if _x_ has some value: $P(y = 1|x = value)$. Since _y_ is binary, we know the probability of _y = 0_ if we know the probability of _y = 1_, be it a conditional or unconditional probability. When _x_ is binary too, there are two conditional probabilities:
-$$P(y = 1|x = 1)$$
-$$P(y = 1|x = 0)$$
-With more values for either of the two variables _(y, x)_, we have more numbers to compare: $P(y = value|x = value)$. With relatively few values, visualization often helps. To visualize conditional probabilities if both _y_ and _x_ have few values, a good visualization is to show stacked bar charts of _y_ for the values of _x_.
+$$P(y = 1\ |\ x = 1)$$
+$$P(y = 1\ |\ x = 0)$$
+With more values for either of the two variables _(y, x)_, we have more numbers to compare: $P(y = value\ |\ x = value)$. With relatively few values, visualization often helps. To visualize conditional probabilities if both _y_ and _x_ have few values, a good visualization is to show stacked bar charts of _y_ for the values of _x_.
 
 ```{r conditional_probability}
 # generating employment bins
@@ -937,7 +937,6 @@ p1 <- ggplot(data = wms_lean, aes(x = emp3bins, y = Percent, fill = factor(lean1
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = seq(0, 1, by = 0.2), labels = scales::percent_format()) +
   scale_x_discrete(labels = c("1" = "Small", "2" = "Medium", "3" = "Large")) +
   scale_fill_manual(values = c(color[3], color[1], color[5], color[2], color[4]), name = NULL) +
-  # scale_fill_manual(values = viridis(5, begin=0, end=0.9), name = NULL) +
   labs(x = "Firm size (employment), 3 bins", y = "Percent") +
   theme_bg() +
   theme(legend.position = "right")
