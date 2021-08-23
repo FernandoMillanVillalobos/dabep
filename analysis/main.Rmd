@@ -11,7 +11,7 @@ output:
     message: FALSE
     highlight: pygments
     theme: paper
-    df_print: kable
+    wms_print: kable
     toc: yes
     toc_depth: 4
     number_sections: yes
@@ -164,6 +164,7 @@ library(pastecs)
 library(patchwork)
 library(xtable)
 library(reticulate)
+library(binsreg)
 library(janitor)", # names
   file = "manifest.R"
 )
@@ -347,8 +348,8 @@ hotels_raw <- hotels_raw |>
 summary(hotels_raw)
 
 # making a summary of the missing values
-summary_df <- t(stat.desc(hotels_raw))
-summary_df
+summary_wms <- t(stat.desc(hotels_raw))
+summary_wms
 
 # creating a flag variable for missing values
 hotels_raw <- hotels_raw |>
@@ -704,12 +705,12 @@ Encoding here means what numbers to present, and in what detail. Documentation t
 import pandas as pd
 
 # converting R object to a python object
-df = r.games
-df.shape
+wms = r.games
+wms.shape
 
 # calculating the goal difference
-df["home_goaladv"] = df["goals_home"] - df["goals_away"]
-df.head()
+wms["home_goaladv"] = wms["goals_home"] - wms["goals_away"]
+wms.head()
 
 # making a table to present the results
 pd.DataFrame.from_dict(
@@ -723,12 +724,12 @@ pd.DataFrame.from_dict(
             "Number of observations",
         ],
         "Value": [
-            df["home_goaladv"].describe()["mean"],
-            df["home_goaladv"].describe()["std"],
-            (df["home_goaladv"] > 0).sum() / df["home_goaladv"].shape[0] * 100,
-            (df["home_goaladv"] == 0).sum() / df["home_goaladv"].shape[0] * 100,
-            (df["home_goaladv"] < 0).sum() / df["home_goaladv"].shape[0] * 100,
-            df["home_goaladv"].describe()["count"],
+            wms["home_goaladv"].describe()["mean"],
+            wms["home_goaladv"].describe()["std"],
+            (wms["home_goaladv"] > 0).sum() / wms["home_goaladv"].shape[0] * 100,
+            (wms["home_goaladv"] == 0).sum() / wms["home_goaladv"].shape[0] * 100,
+            (wms["home_goaladv"] < 0).sum() / wms["home_goaladv"].shape[0] * 100,
+            wms["home_goaladv"].describe()["count"],
         ],
     }
 ).round(1)
@@ -911,6 +912,7 @@ $$P(y = 1\ |\ x = 0)$$
 With more values for either of the two variables _(y, x)_, we have more numbers to compare: $P(y = value\ |\ x = value)$. With relatively few values, visualization often helps. To visualize conditional probabilities if both _y_ and _x_ have few values, a good visualization is to show stacked bar charts of _y_ for the values of _x_.
 
 ```{r conditional_probability}
+# CASE STUDY: Management quality and firm size: describing patterns of association
 # generating employment bins
 wms$emp3bins <- ifelse(wms$emp_firm < 200, 1,
   ifelse(wms$emp_firm >= 200 & wms$emp_firm < 1000, 2,
@@ -923,7 +925,7 @@ Hmisc::describe(wms$emp3bins)
 # converting created variable as factor
 wms$emp3bins <- as.factor(wms$emp3bins)
 
-# creating new df for lean management
+# creating new wms for lean management
 wms_lean <- wms |>
   dplyr::select(emp3bins, lean1) |>
   dplyr::group_by(emp3bins, lean1) |>
@@ -937,12 +939,12 @@ p1 <- ggplot(data = wms_lean, aes(x = emp3bins, y = Percent, fill = factor(lean1
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = seq(0, 1, by = 0.2), labels = scales::percent_format()) +
   scale_x_discrete(labels = c("1" = "Small", "2" = "Medium", "3" = "Large")) +
   scale_fill_manual(values = c(color[3], color[1], color[5], color[2], color[4]), name = NULL) +
-  labs(x = "Firm size (employment), 3 bins", y = "Percent") +
+  labs(x = "Firm size (employment), 3 bins", y = "Percent", title = "Lean Management") +
   theme_bg() +
   theme(legend.position = "right")
 p1
 
-# creating new df for performance tracking
+# creating new wms for performance tracking
 wms_per <- wms |>
   dplyr::select(emp3bins, perf2) |>
   dplyr::group_by(emp3bins, perf2) |>
@@ -956,12 +958,261 @@ p2 <- ggplot(data = wms_per, aes(x = emp3bins, y = Percent, fill = factor(perf2,
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = seq(0, 1, by = 0.2), labels = scales::percent_format()) +
   scale_x_discrete(labels = c("1" = "Small", "2" = "Medium", "3" = "Large")) +
   scale_fill_manual(values = c(color[3], color[1], color[5], color[2], color[4]), name = NULL) +
-  labs(x = "Firm size (employment), 3 bins", y = "Percent") +
+  labs(x = "Firm size (employment), 3 bins", y = "Percent", title = "Performance Tracking") +
   theme_bg() +
   theme(legend.position = "right")
 p2
 ```
+### Conditional Distribution and Conditional Expectation
+Just as all variables have a distribution, all _y_ variables have a __conditional distribution__ if conditioned on an _x_ variable. The simplest case is a binary _x_ when the conditional distribution of _y_ is two distributions, one for each of the two _x_ values.
 
+Conditional distributions with few _x_ values are best presented by visualization: for each _x_ value we show stacked bar charts if _y_ has few values or histograms if _y_ is a quantitative variable with many values. Make sure that the histograms are fully comparable across the _x_ values: most importantly, they have the same bins of _y_, and they have the same scale on the vertical axis. Comparing histograms can reveal qualitative differences in the distributions. To make quantitative comparisons,  however, we need to compare statistics that summarize the important features of distributions.
+
+The most important conditional statistics is the __conditional mean__, also known as the __conditional expectation__, which shows the mean of _y_ for each value of _x_: $E[y|x]$. Note that while the overall mean of _y_, $E[y]$, is a single number in a data table, the conditional mean, $E[y|x]$, varies in the data, because it can be different values of _x_.
+
+Analogously, we can look at conditional medians, standard deviations, and so on. Comparing box plots and violin plots is a great way to visualize conditional statistics of _y_ when _x_ has few values.
+
+### Conditional Distribution and Conditional Expectation with Quantitative _x_
+When the _x_ is quantitative with many values, it is usually impossible or impractical to plot histograms or compute the conditional mean for each value of _x_. First, there are too many values of _x_ and, typically, too few observations for each value. Second, even if we had enough observations, the resulting statistics or pictures would typically be too complex to make sense of. We have two approaches to deal with these problems. The first approach circumvents the problem of too many _x_ values by reducing them through creating bins. Creating bins from _x_ is not only the simplest approach, but it often produces powerful results. Usually with just three bins of _x_ we can capture the most important patterns of association between a quantitative _y_ and a quantitative _x_.
+
+Visualization of conditional means of _y_ for bins of _x_ is called a __bin scatter__. A bin scatter is a figure with the values of the binned _x_ on the horizontal axis and the corresponding conditional mean values of the binned _y_ on the vertical axis. It is a good practice to visualize bin scatters with meaningful _x_ values for the _x_ bins. The second approach keeps _x_ as it is. The most widely used tool is the __scatterplot__, which is a visualization of the __joint distribution__ of two variables. The joint distribution of two variables is the frequency of each value combination of the two variables.
+
+```{r conditional_distributions}
+# CASE STUDY: Management quality and firm size: describing patterns of association
+# re-coding employee bins
+wms$emp3bins <- ifelse(wms$emp3bins == 1, 150,
+  ifelse(wms$emp3bins == 2, 600,
+    ifelse(wms$emp3bins == 3, 3000, NA)
+  )
+)
+
+# summary
+wms  |> 
+  dplyr::select(emp_firm, emp3bins)  |> 
+  dplyr::group_by(emp3bins)  |> 
+  dplyr::summarise_all(tibble::lst(min, max, mean, median, sd, length))
+
+# generating variables by mean (3 bins)
+wms_mean03 <- wms  |> 
+  dplyr::group_by(emp3bins)  |> 
+  dplyr::summarize(management_emp3bins = mean(management))
+
+# plotting conditional mean (3 bins of employment)
+p1 <- ggplot(data = wms_mean03, aes(x = emp3bins, y = management_emp3bins)) +
+  geom_point(size = 2, color = color[3], fill = color[1], shape = 21, alpha = 0.8, na.rm = T) +
+  scale_y_continuous(expand = c(0.01, 0.01), limits = c(2.4, 3.4), breaks = seq(2.4, 3.4, by = 0.2)) +
+  scale_x_continuous(expand = c(0.01, 0.01), limits = c(0, 3000), breaks = seq(0, 3000, by = 500)) +
+  labs(x = "Firm size (employment), 3 bins", y = "Management score") +
+  theme_bg()
+p1
+
+# generating employment bins of 10
+wms$emp10bins <- wms$emp_firm  |>  ggplot2::cut_number(10)
+
+# summary
+wms_summary <- wms  |> 
+  dplyr::select(emp_firm, emp10bins)  |> 
+  dplyr::group_by(emp10bins)  |> 
+  dplyr::summarise_all(tibble::lst(min, max, mean, median, sd, length))
+wms_summary
+
+# re-coding
+levels(wms$emp10bins) <- wms_summary  |> 
+  dplyr::pull(mean)  |> 
+  round()
+
+wms$emp10bins <- as.numeric(levels(wms$emp10bins))[wms$emp10bins]
+
+# summary
+wms  |> 
+  dplyr::select(emp_firm, emp10bins)  |> 
+  dplyr::group_by(emp10bins)  |> 
+  dplyr::summarise_all(tibble::lst(min, max, mean, median, sd, length))
+
+# generating variables by mean (10 bins)
+wms_mean10 <- wms  |> 
+  dplyr::group_by(emp10bins)  |> 
+  dplyr::summarize(management_emp10bins = mean(management))
+
+# plotting conditional mean (10 bins of employment)
+p2 <- ggplot(data = wms_mean10, aes(x = emp10bins, y = management_emp10bins)) +
+  geom_point(size = 2, color = color[3], fill = color[1], shape = 21, alpha = 0.8, na.rm = T) +
+  scale_y_continuous(expand = c(0.01, 0.01), limits = c(2.5, 3.5), breaks = seq(2.5, 3.5, by = 0.25)) +
+  scale_x_continuous(expand = c(0.01, 0.01), limits = c(0, 3500), breaks = seq(0, 3500, by = 500)) +
+  labs(x = "Firm size (employment), 10 bins", y = "Management score") +
+  theme_bg()
+p2
+
+# this is a simpler solution, similar looking graph (not in book):
+binsreg::binsreg(wms$management, wms$emp_firm, nbins = 3)
+binsreg::binsreg(wms$management, wms$emp_firm, nbins = 10)
+
+# plotting avg score by employment
+p3 <- ggplot(data = wms, aes(x = emp_firm, y = management)) +
+  geom_point(color = color[1], size = 1.5, shape = 16, alpha = 0.8, show.legend = FALSE, na.rm = TRUE) +
+  scale_x_continuous(expand = c(0.01, 0.01), limits = c(0, 5000), breaks = seq(0, 5000, by = 1000)) +
+  scale_y_continuous(expand = c(0.01, 0.01), limits = c(1, 5), breaks = seq(1, 5, 1)) +
+  labs(x = "Firm size (employment)", y = "Management score") +
+  theme_bg()
+p3
+
+# creating log var
+wms$lnemp <-  log(wms$emp_firm)
+
+# plotting avg score by employment (log)
+p4 <- ggplot(data = wms, aes(x = lnemp, y = management)) +
+  geom_point(color = color[1], size = 1.5, shape = 16, alpha = 0.8, show.legend = FALSE, na.rm = TRUE) +
+  scale_x_continuous(expand = c(0.01, 0.01), limits = c(4, 9), breaks = seq(4, 9, by = 1)) +
+  scale_y_continuous(expand = c(0.01, 0.01), limits = c(1, 5), breaks = seq(1, 5, 1)) +
+  labs(x = "Firm size (ln(employment))", y = "Management score") +
+  theme_bg()
+p4
+
+# transforming as bin categories factor
+wms$emp3bins <- as.factor(wms$emp3bins)
+levels(wms$emp3bins) <- c("Small", "Medium", "Large")
+
+# plotting boxplots
+p5 <- ggplot(data = wms, aes(x = emp3bins, y = management)) +
+  stat_boxplot(aes(group = emp3bins), geom = "errorbar", width = 0.5, color = c(color[2], color[1], color[3]), size = 0.5, na.rm = T) +
+  geom_boxplot(aes(group = emp3bins), color = c(color[2], color[1], color[3]), fill = c(color[2], color[1], color[3]), size = 0.5, width = 0.5, alpha = 0.3, na.rm = T) +
+  labs(x = "Firm size (employment), 3 bins", y = "Management score") +
+  scale_y_continuous(expand = c(0.01, 0.01), limits = c(1, 5), breaks = seq(1, 5, 1)) +
+  theme_bg()
+p5
+
+# plotting violin plots
+p6 <- ggplot(data = wms, aes(x = emp3bins, y = management, color = emp3bins, fill = emp3bins)) +
+  geom_violin(aes(group = emp3bins), size = 0.3, alpha = 0.3, trim = F, show.legend = F, na.rm = TRUE) +
+  geom_boxplot(aes(group = emp3bins), color = c(color[2], color[1], color[3]), fill = c(color[2], color[1], color[3]), size = 0.5, width = 0.2, alpha = 0.3, na.rm = T) +
+  labs(x = "Firm size (employment), 3 bins", y = "Management score") +
+  scale_y_continuous(expand = c(0.01, 0.01), limits = c(0, 6), breaks = seq(0, 6, 1)) +
+  scale_color_manual(
+    name = "",
+    values = c(color[2], color[1], color[3])
+  ) +
+  scale_fill_manual(
+    name = "",
+    values = c(color[2], color[1], color[3])
+  ) +
+  theme_bg()
+p6
+```
+### Dependence, Covariance and Correlation
+__Dependence of two variables__, also called __statistical dependence__ means that the conditional distributions of one variable _(y)_ are not the same when conditional on different values of the other variable _(x)_. In contrast, __independence of variables__ means that the distribution of one conditional on the other is the same, regardless of the value of the conditioning variable. Dependence of _y_ and _x_ may take many forms, but the most important form of dependence is __mean-dependence__: the mean of _y_ is different when the value of _x_ is different.
+
+The __covariance__ and the __correlation coefficient__ are measures of this mean-dependence. The two measures are very closely related: the correlation coefficient is the standardized version of the covariance.
+
+The formula for the covariance between two variables _x_ and _y_ in a dataset with _n_ observations is:
+$$Cov[x, y] = \frac{\sum_i(x_i -\hat x)(y_i - \hat y)}{n}$$
+The correlation coefficient divides this by the product of the two standard deviations:
+$$Corr[x, y] = \frac{Cov[x, y]}{Std[x]Std[y]}$$
+The covariance may be any positive or negative number, while the correlation coefficient is bound to be between -1 and 1. But their sign is always the same: the covariance is zero when the correlation coefficient is zero 
+__(uncorrelated)__; the covariance is positive when the correlation coefficient is positive __(positively correlated)__; the covariance is negative when the correlation coefficient is negative __(negative correlated)__. The magnitude of the correlation coefficient shows the strength of the association: a correlation of 0.2 or less can be considered weak, and a correlation above 0.7 is usually considered strong. If two variables are independent, the covariance and the correlation coefficient are both zero.
+
+### From Laten Variables to Observed Variables
+Often, the _y_ or _x_ variables we have in question are abstract concepts: the quality of management of a firm, skills of an employee, health of a person...Typically, such variables are not parts of an actual dataset, and they can't be because they are too abstract. Such variables are called __latent variables__. Data analysis can help answer questions involving latent variables only by substituting observed variables for them. Those observed variables are called __proxy variables__.
+
+Data analysis compares values of measured variables. Even if those variables are supposed to measure abstract concepts, it's never the abstract concepts themselves that we have in our data. A specific issue arises when our data contains not one but more variables that could serve as proxies to the latent variable we want to examine. The question here is how to combine multiple observed variables:
+
+* Use one of the observed variables
+* Take the average (or sum) of the observed variables
+* Use principal component analysis (PCA) to combine the observed variables
+
+Using one measured variable and excluding the rest has the advantage of easy interpretation, and the disadvantage of discarding potentially useful information contained in the other variables.
+
+Taking the average of all measured variables makes use of all information in a simple way. When all of those variables are measured using the same scale, this approach yields a combined measure with a natural interpretation. When the variables are measured at different scales, we need to bring the observed variables to the same scale, usually by standardizing them __(z-score)__. By taking a simple average of all these variables we give them equal weight. This may be a disadvantage if some of the variables are better measures of the latent variable than others.
+
+__Principal component analysis (PCA)__ is a method to give higher weights to the observable variables that are better measures. PCA finds those weights by examining how strongly they would be related with the weighted average.
+
+```{r correlation}
+# CASE STUDY: Management quality and firm size: describing patterns of association
+
+# calculating overall correlation coefficient
+cor(wms$management, wms$emp_firm, use = "complete.obs")
+
+# looking at the most recent industry code for the firms
+table(wms$sic)
+
+# recoding industry codes
+wms$industry_broad[wms$sic <= 21] <- "food_drinks_tobacco"
+wms$industry_broad[wms$sic >= 22 & wms$sic <= 23 | wms$sic == 31] <- "textile_apparel_leather_etc"
+wms$industry_broad[wms$sic >= 24 & wms$sic <= 27] <- "wood_furniture_paper"
+wms$industry_broad[wms$sic >= 28 & wms$sic <= 30] <- "chemicals_etc"
+wms$industry_broad[wms$sic >= 32 & wms$sic < 35] <- "materials_metals"
+wms$industry_broad[wms$sic >= 35 & wms$sic < 37] <- "electronics"
+wms$industry_broad[wms$sic == 37] <- "auto"
+wms$industry_broad[wms$sic >= 38] <- "other"
+
+table(wms$industry_broad)
+
+# summary management
+wms  |> 
+  dplyr::select(management, industry_broad)  |> 
+  dplyr::filter(!is.na(industry_broad))  |> 
+  dplyr::group_by(industry_broad)  |> 
+  dplyr::summarise(
+    Min = min(management),
+    Max = max(management),
+    SD = sd(management),
+    Median = median(management),
+    n()
+  )
+
+# summary employment
+wms  |> 
+  dplyr::select(emp_firm, industry_broad)  |> 
+  dplyr::filter(!is.na(industry_broad))  |> 
+  dplyr::group_by(industry_broad)  |> 
+  dplyr::summarise(
+    Min = min(emp_firm),
+    Max = max(emp_firm),
+    SD = sd(emp_firm),
+    Median = median(emp_firm),
+    n()
+  )
+
+# calculating correlation per industry broad
+cor <- wms  |> 
+  dplyr::group_by(industry_broad)  |> 
+  dplyr::summarize(COR = cor(management, emp_firm))
+
+# creating a table with the average of all relevant variables for the latent
+wms_tab <- wms  |> 
+  select(emp_firm, industry_broad, management)  |> 
+  group_by(industry_broad)  |> 
+  dplyr::summarise(Mean = mean(management), Obs = n())
+
+# adding correlation to the table
+wms_tab$cor <- cor$COR
+
+# recoding variables
+wms_tab$industry_broad <- wms_tab$industry_broad  |>  dplyr::recode(
+  auto = "Auto",
+  chemicals_etc = "Chemicals",
+  electronics = "Machinery, equipment, electronics",
+  food_drinks_tobacco = "Food, drinks, tobacco",
+  materials_metals = "Materials, metals",
+  textile_apparel_leather_etc = "Textile, apparel, leather",
+  wood_furniture_paper = "Wood, furniture, paper",
+  other = "Other"
+)
+
+# adding the last row with all category
+last_row <- wms_tab  |>  summarise(Mean = mean(Mean), Obs = sum(Obs), cor = mean(cor))
+last_row$industry_broad <- "All"
+
+wms_tab <- wms_tab  |>  add_row(
+  industry_broad = last_row$industry_broad,
+  Mean = last_row$Mean,
+  cor = last_row$cor,
+  Obs = last_row$Obs
+)
+
+# formatting the table
+wms_tab <- wms_tab  |>  select(industry_broad, cor, Mean, Obs)
+wms_tab
+```
 
 # Linting
 
