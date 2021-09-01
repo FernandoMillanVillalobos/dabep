@@ -471,19 +471,22 @@ p1
 # CHAPTER 03: Exploratory Data Analysis (EDA)
 
 ## Frequencies and Probabilities
-The __absolute frequency__, or count, of a value of a variable is simply the number of observations with that particular value in the data. The __relative frequency__ is the frequency expressed in relative, or percentage, terms: the proportion of observations with that particular value among all observations in the data. If a variable has missing values, this proportion can be relative to all observations including the missing values or only to observations with missing values.
 
-__Probability__ is a general concept that is closely related to relative frequency. Probability is a measure of the likelihood of an event. In the context of data, an event is _the occurrence of a particular value of a variable_. __The probability of an event is its relative frequency.__ Probabilities are always between zero and one. We denote the probability of an event as $$P(event)$$, so that $$0 <= P(event) <= 1$$. Considering a single event, it either happens or does not. These two are mutually exclusive: the probability of an event happening and it also not happening is zero: $$P(event&~even) = 0$$.
+The **absolute frequency**, or count, of a value of a variable is simply the number of observations with that particular value in the data. The **relative frequency** is the frequency expressed in relative, or percentage, terms: the proportion of observations with that particular value among all observations in the data. If a variable has missing values, this proportion can be relative to all observations including the missing values or only to observations with missing values.
+
+**Probability** is a general concept that is closely related to relative frequency. Probability is a measure of the likelihood of an event. In the context of data, an event is *the occurrence of a particular value of a variable*. **The probability of an event is its relative frequency.** Probabilities are always between zero and one. We denote the probability of an event as $$P(event)$$, so that $$0 <= P(event) <= 1$$. Considering a single event, it either happens or does not. These two are mutually exclusive: the probability of an event happening and it also not happening is zero: $$P(event&~even) = 0$$.
 
 ## Visualizing Distributions
-Frequencies are summarized by distributions. The __distribution__ of a variable gives the frequency of each value of the variable in the data, either in terms of absolute frequency (number of observations), or relative frequency (proportion or percent).
 
-The simplest way to visualize a distribution is the __histogram__. For variables with many potential values, showing bars for each value is usually uninformative. Instead, it's better to group the many values in fewer groupings or bins. Visual inspection of a histogram can inform us about the number and location of __modes__: these are peaks in the distribution that stand out from their immediate neighborhood.
+Frequencies are summarized by distributions. The **distribution** of a variable gives the frequency of each value of the variable in the data, either in terms of absolute frequency (number of observations), or relative frequency (proportion or percent).
 
-__Density plots__, also called __kernel density estimates__, are an alternative to histograms for variables with many values.
+The simplest way to visualize a distribution is the **histogram**. For variables with many potential values, showing bars for each value is usually uninformative. Instead, it's better to group the many values in fewer groupings or bins. Visual inspection of a histogram can inform us about the number and location of **modes**: these are peaks in the distribution that stand out from their immediate neighborhood.
+
+**Density plots**, also called **kernel density estimates**, are an alternative to histograms for variables with many values.
 
 ## Extreme Values
-What it should be do with observations with extreme values of a variable depends on the role of the variable in our analysis. We distinguish a _y_ variable and one or more _x_ variables in the analysis. Typically, our analysis will aim to uncover patterns in how values of _y_ tend to differ for observations that have different values of _x_. __Discarding observations with extreme _x_ values narrows the scope of the comparisons.__ In contrast, discarding observations with extreme _y_ values changes the result of the comparisons.
+
+What it should be do with observations with extreme values of a variable depends on the role of the variable in our analysis. We distinguish a *y* variable and one or more *x* variables in the analysis. Typically, our analysis will aim to uncover patterns in how values of *y* tend to differ for observations that have different values of *x*. **Discarding observations with extreme *x* values narrows the scope of the comparisons.** In contrast, discarding observations with extreme *y* values changes the result of the comparisons.
 
 ```{r distributions}
 # load data
@@ -595,8 +598,8 @@ vienna_hotels <- vienna |>
 ```
 
 ## Summary Statistics for Quantitative Variables
-While measures of central value (such as mean, median) and spread (such as range, standard deviation) are usually well known, summary statistics that measure __skewness__ are less frequently used. A distribution may be skewed in two ways, having a long left tail or having a long right tail. A long left tail means having a few observations with large values with most observations having larger values. A long right tail means having a few observations with large values with most observations having smaller values. The statistic of skewness compares the mean and the median and is called the __mean-median measure of skewness__. When the distribution is symmetric, its mean and median are the same. When it is skewed with a long right tail, the mean is larger than the median. Conversely, when a distribution is skewed with a long left tail, the mean is smaller than the median. The mean-median measure of skewness captures this intuition. In order to make this measure comparable across various distributions, we use a standardized measure, dividing the difference by the standard deviation: 
-$$ Skewness = \frac{\bar{x} - median[x]}{Std[x]}$$ 
+
+While measures of central value (such as mean, median) and spread (such as range, standard deviation) are usually well known, summary statistics that measure **skewness** are less frequently used. A distribution may be skewed in two ways, having a long left tail or having a long right tail. A long left tail means having a few observations with large values with most observations having larger values. A long right tail means having a few observations with large values with most observations having smaller values. The statistic of skewness compares the mean and the median and is called the **mean-median measure of skewness**. When the distribution is symmetric, its mean and median are the same. When it is skewed with a long right tail, the mean is larger than the median. Conversely, when a distribution is skewed with a long left tail, the mean is smaller than the median. The mean-median measure of skewness captures this intuition. In order to make this measure comparable across various distributions, we use a standardized measure, dividing the difference by the standard deviation: $$ Skewness = \frac{\bar{x} - median[x]}{Std[x]}$$
 
 ```{r summary_statistics}
 # CASE STUDY: Comparing Hotel Prices in Europe: Vienna vs London
@@ -693,8 +696,10 @@ p1 <- ggplot(data = games, aes(x = home_goaladv, y = (..count..) / sum(..count..
   theme_bg()
 p1
 ```
+
 ### Tables
-To produce a good table, one needs to to think about its __usage__, choose __encoding__ and __scaffolding__ accordingly, and may add __annotation__. One important type wants to communicate the main result, or results, of the analysis. A table of this type is called a __result table__, or a communication table. Good communication tables are focused on one message. The other main table type is the __documentation table__. Its aim is to document exploratory data analysis. Documentation tables describe the structure of the data, one or more variables, or some other features such as missing values or extreme values. Such tables are also used to summarize the results of data cleaning and restructuring processes by showing numbers of observations and statistics of important variables for the original data and the data we chose to work with. 
+
+To produce a good table, one needs to to think about its **usage**, choose **encoding** and **scaffolding** accordingly, and may add **annotation**. One important type wants to communicate the main result, or results, of the analysis. A table of this type is called a **result table**, or a communication table. Good communication tables are focused on one message. The other main table type is the **documentation table**. Its aim is to document exploratory data analysis. Documentation tables describe the structure of the data, one or more variables, or some other features such as missing values or extreme values. Such tables are also used to summarize the results of data cleaning and restructuring processes by showing numbers of observations and statistics of important variables for the original data and the data we chose to work with.
 
 Encoding here means what numbers to present, and in what detail. Documentation tables tend to be large and include everything that is, or may become, important. In contrast, communication tables should be simple and focused. A good practice of encoding is to show totals together with components. In a documentation table with numbers of observations in subgroups in the data, the total number of observations is usually included. Another good practice is to include the number of observations in all tables. The second question of encoding is how much detail the numbers should have in the table. Communication tables should have no more detail than necessary. Usually, documentation tables have numbers in more detail.
 
@@ -734,18 +739,20 @@ pd.DataFrame.from_dict(
     }
 ).round(1)
 ```
+
 ## Theoretical Distributions
+
 Theoretical distributions are distributions of variables with idealized properties. Instead of showing frequencies in data, they show more abstract probabilities: the likelihood of each value (or each interval of values) in a more abstract setting. That more abstract setting is a hypothetical "data" or "population", or the abstract space of the possible realizations of events.
 
 They can be of great help when we want to understand important characteristics of variables in our data. If a variable in our data is well approximated by a theoretical distribution, we can simply attribute those properties to the variable without having to check those properties over and over. Another reason to know about theoretical distributions is that some of them are useful what happens when we want to generalize from the data we have.
 
-The __normal distribution__ is a pure theoretical construct in the sense that it was derived mathematically from another distribution, the __binomial__. Variables with a normal distribution can in principle take on any value from negative infinity to positive infinity. The histogram of the normal distribution is bell shaped, and is characterized by two __parameters__, usually denoted as $\mu$ and standard deviation $\sigma$. They refer to the mean ($\mu$) and the standard deviation ($\sigma$). A special case of the normal distribution is the __standard normal distribution__. It is a normal distribution with parameters $\mu = 0$ and $\sigma = 1$. If variable _x_ is normally distributed with mean $\mu$ and standard deviation $\sigma$, its transformed version is distributed standard normal if we take out the mean and divide this difference by the standard deviation: $\frac{(x-\mu)}{\sigma}$.
+The **normal distribution** is a pure theoretical construct in the sense that it was derived mathematically from another distribution, the **binomial**. Variables with a normal distribution can in principle take on any value from negative infinity to positive infinity. The histogram of the normal distribution is bell shaped, and is characterized by two **parameters**, usually denoted as $\mu$ and standard deviation $\sigma$. They refer to the mean ($\mu$) and the standard deviation ($\sigma$). A special case of the normal distribution is the **standard normal distribution**. It is a normal distribution with parameters $\mu = 0$ and $\sigma = 1$. If variable *x* is normally distributed with mean $\mu$ and standard deviation $\sigma$, its transformed version is distributed standard normal if we take out the mean and divide this difference by the standard deviation: $\frac{(x-\mu)}{\sigma}$.
 
-It turns out that when we transform a normally distributed variable by adding or multiplying by a number, the result is another normally distributed variable, with appropriately transformed mean and standard deviation. It also turns out that when we add two normally distributed variables, the  resulting variable is also normally distributed, and its mean is the sum of the means of the two original variables.
+It turns out that when we transform a normally distributed variable by adding or multiplying by a number, the result is another normally distributed variable, with appropriately transformed mean and standard deviation. It also turns out that when we add two normally distributed variables, the resulting variable is also normally distributed, and its mean is the sum of the means of the two original variables.
 
 Some variables in real life are well approximated by the normal distribution. However, the normal is a bad approximation to real-life variables with extreme values. Extreme values are very unlikely in the normal distribution. Besides the absence of extreme values, symmetry is another feature of the normal distribution that makes it a bad approximation to many economic variables. Earnings, income, wealth, and firm productivity are usually asymmetrically distributed with a long right tails. One theoretical distribution that may be a better approximation to such variables is the lognormal distribution.
 
-The __lognormal distribution__ is very asymmetric, with a long right tail, potentially including many extreme values at the positive end. The lognormal distribution is derived from the normal distribution. If we take a variable that is distributed normally _(x)_ and raise _e_ to its power ($e^x$), the resulting variable is distributed lognormally. The old variable is the __natural logarithm__ of the new variable. Because we raised _e_ to the power of the original variable, the values of the resulting lognormal variable are always positive. They range between zero and positive infinity (never reaching either). By convention, the parameters of the lognormal are the mean $\mu$ and the standard deviation $\sigma$ of the original, normally distributed variable, which is the logarithm of the new variable. There are real-life variables that are approximately lognormally distributed. These include distributions of price, income, and firm size. Variables are well approximated by the lognormal if they are the result of many things multiplied together (the natural log of them is thus a sum).
+The **lognormal distribution** is very asymmetric, with a long right tail, potentially including many extreme values at the positive end. The lognormal distribution is derived from the normal distribution. If we take a variable that is distributed normally *(x)* and raise *e* to its power ($e^x$), the resulting variable is distributed lognormally. The old variable is the **natural logarithm** of the new variable. Because we raised *e* to the power of the original variable, the values of the resulting lognormal variable are always positive. They range between zero and positive infinity (never reaching either). By convention, the parameters of the lognormal are the mean $\mu$ and the standard deviation $\sigma$ of the original, normally distributed variable, which is the logarithm of the new variable. There are real-life variables that are approximately lognormally distributed. These include distributions of price, income, and firm size. Variables are well approximated by the lognormal if they are the result of many things multiplied together (the natural log of them is thus a sum).
 
 ```{r theoretical_distributions}
 # CASE STUDY: Distributions of Body Height and Income
@@ -831,16 +838,17 @@ p3
 ```
 
 # CHAPTER 04: Comparison and Correlation
-Much of data analysis is built on comparing values of a _y_ variable by values of an _x_ variable, or more _x_ variables. Such a comparison can uncover the __patterns of association__ between the two variables: whether and how observations with particular values of one variable _(x)_ tend to have particular values of the other variable _(y)_.
 
-The role of _y_ is different from the role of _x_. It's the values of _y_ we are interested in, and we compare observations that are different in their _x_ values. This asymmetry comes from the goal of our analysis. One goal of data analysis is predicting the value of a _y_ variable with the help of other variables. The prediction itself takes place when we know the values of those other variables but not the _y_ variable. To predict _y_ based on the other variables we need a rule that tells us what the predicted _y_ value is as a function of the values of the other variables. Such a rule can be devised by analyzing data where we know the _y_ values, too.
+Much of data analysis is built on comparing values of a *y* variable by values of an *x* variable, or more *x* variables. Such a comparison can uncover the **patterns of association** between the two variables: whether and how observations with particular values of one variable *(x)* tend to have particular values of the other variable *(y)*.
 
-The other most frequent goal of data analysis is to learn about the effect of a __causal variable__ _x_ on an __outcome variable__ _y_. Here, we typically are interested in what the value of _y_ would be if we could change _x_.
+The role of *y* is different from the role of *x*. It's the values of *y* we are interested in, and we compare observations that are different in their *x* values. This asymmetry comes from the goal of our analysis. One goal of data analysis is predicting the value of a *y* variable with the help of other variables. The prediction itself takes place when we know the values of those other variables but not the *y* variable. To predict *y* based on the other variables we need a rule that tells us what the predicted *y* value is as a function of the values of the other variables. Such a rule can be devised by analyzing data where we know the *y* values, too.
 
-In sum, deciding on what's _y_ and what's _x_ in the data is the first step before doing any meaningful analysis.
+The other most frequent goal of data analysis is to learn about the effect of a **causal variable** *x* on an **outcome variable** *y*. Here, we typically are interested in what the value of *y* would be if we could change *x*.
 
-* For prediction we want to know what value of _y_ to expect for different values of various _x_ variables, such $x_1$, $x_2$,...
-* For causal analysis we want to know what value of _y_ to expect if we changed the value of _x_, often comparing observations that are similar in other variables $(z_1)$, $(z_2)$, ...
+In sum, deciding on what's *y* and what's *x* in the data is the first step before doing any meaningful analysis.
+
+-   For prediction we want to know what value of *y* to expect for different values of various *x* variables, such $x_1$, $x_2$,...
+-   For causal analysis we want to know what value of *y* to expect if we changed the value of *x*, often comparing observations that are similar in other variables $(z_1)$, $(z_2)$, ...
 
 ```{r patterns_of_association}
 # CASE STUDY: Management quality and firm size: describing patterns of association
@@ -890,26 +898,24 @@ p3 <- ggplot(data = wms, aes(x = lnemp)) +
   theme_bg()
 p3
 ```
-## Conditioning
-The word statisticians use for comparison is __conditioning__. When we compare the values of _y_ by the values of _x_, we condition _y_ on _x_. _y_ is also called the __outcome variable__; _x_ is also called the __conditioning (or predictor) variable__.
 
-When data analysts want to uncover values of _y_ for observations that are different in _x_ but similar in _z_, they do one more step of conditioning: they compare _y_ by _x_ conditional on _z_. That is called __further conditioning__ or a __conditional comparison__. In practice we explore conditional probabilities, conditional means, and conditional distributions.
+## Conditioning
+
+The word statisticians use for comparison is **conditioning**. When we compare the values of *y* by the values of *x*, we condition *y* on *x*. *y* is also called the **outcome variable**; *x* is also called the **conditioning (or predictor) variable**.
+
+When data analysts want to uncover values of *y* for observations that are different in *x* but similar in *z*, they do one more step of conditioning: they compare *y* by *x* conditional on *z*. That is called **further conditioning** or a **conditional comparison**. In practice we explore conditional probabilities, conditional means, and conditional distributions.
 
 ### Conditional Probabilities
-The probability of a value of a variable in a data set is its relative frequency (percentage). __Conditional probability__ is the probability of one event if another event happens. The event the conditional probability is about is called the __conditional event__; the other event is called the __conditioning event__. Conditional probabilities are denoted as $P(event_1\ |\ event_2)$: the probability of $event_1$ conditional on $event_2$.
 
-Joint probabilities are related to conditional probabilities. The __joint probability__ of two events is the probability that both occur: $P(event_1\ \&\ event_2)$. When two events are mutually exclusive, their joint probability is zero (the two never happen together).
+The probability of a value of a variable in a data set is its relative frequency (percentage). **Conditional probability** is the probability of one event if another event happens. The event the conditional probability is about is called the **conditional event**; the other event is called the **conditioning event**. Conditional probabilities are denoted as $P(event_1\ |\ event_2)$: the probability of $event_1$ conditional on $event_2$.
+
+Joint probabilities are related to conditional probabilities. The **joint probability** of two events is the probability that both occur: $P(event_1\ \&\ event_2)$. When two events are mutually exclusive, their joint probability is zero (the two never happen together).
 
 Another probability related to two events denotes the likelihood that one event or the other happens. This is the sum of the two probabilities minus their joint probability: $P(event_1\ OR\  event_2) = P(event_1) + P(event_2) - P(event_1\ \&\ event_2)$. If the two events are mutually exclusive, we subtract zero from the sum of the two probabilities.
 
-The conditional probability can be expressed as the corresponding joint probability divided by the probability of the conditioning event:
-$$P(event_1\ |\ event_2) = \frac{P(event_1\ \&\ event_2)}{P(event_2)}$$
-Two events are __independent__ if the probability of one of the events is the same regardless of whether or not the other event occurs. In the language of conditional probabilities this means that the conditional probabilities are the same as the unconditional probabilities: $P(event_1\ |\ event_2) = P(event_1)$ and $P(event_2\ |\ event_1) = P(event_2)$. Less intuitive, but also true is that the joint probability of independent events equals the product of their individual probabilities: $P(event_1\ \&\ event_2) = P(event_1)\ X\ P(event_2)$.
+The conditional probability can be expressed as the corresponding joint probability divided by the probability of the conditioning event: $$P(event_1\ |\ event_2) = \frac{P(event_1\ \&\ event_2)}{P(event_2)}$$ Two events are **independent** if the probability of one of the events is the same regardless of whether or not the other event occurs. In the language of conditional probabilities this means that the conditional probabilities are the same as the unconditional probabilities: $P(event_1\ |\ event_2) = P(event_1)$ and $P(event_2\ |\ event_1) = P(event_2)$. Less intuitive, but also true is that the joint probability of independent events equals the product of their individual probabilities: $P(event_1\ \&\ event_2) = P(event_1)\ X\ P(event_2)$.
 
-In data, the events refer to values of variables. Often, the conditional variable, _y_, is a binary variable: _y = 0_ or _y = 1_. Then the conditional probability is the probability that _y = 1_ if _x_ has some value: $P(y = 1|x = value)$. Since _y_ is binary, we know the probability of _y = 0_ if we know the probability of _y = 1_, be it a conditional or unconditional probability. When _x_ is binary too, there are two conditional probabilities:
-$$P(y = 1\ |\ x = 1)$$
-$$P(y = 1\ |\ x = 0)$$
-With more values for either of the two variables _(y, x)_, we have more numbers to compare: $P(y = value\ |\ x = value)$. With relatively few values, visualization often helps. To visualize conditional probabilities if both _y_ and _x_ have few values, a good visualization is to show stacked bar charts of _y_ for the values of _x_.
+In data, the events refer to values of variables. Often, the conditional variable, *y*, is a binary variable: *y = 0* or *y = 1*. Then the conditional probability is the probability that *y = 1* if *x* has some value: $P(y = 1|x = value)$. Since *y* is binary, we know the probability of *y = 0* if we know the probability of *y = 1*, be it a conditional or unconditional probability. When *x* is binary too, there are two conditional probabilities: $$P(y = 1\ |\ x = 1)$$ $$P(y = 1\ |\ x = 0)$$ With more values for either of the two variables *(y, x)*, we have more numbers to compare: $P(y = value\ |\ x = value)$. With relatively few values, visualization often helps. To visualize conditional probabilities if both *y* and *x* have few values, a good visualization is to show stacked bar charts of *y* for the values of *x*.
 
 ```{r conditional_probability}
 # CASE STUDY: Management quality and firm size: describing patterns of association
@@ -963,19 +969,22 @@ p2 <- ggplot(data = wms_per, aes(x = emp3bins, y = Percent, fill = factor(perf2,
   theme(legend.position = "right")
 p2
 ```
+
 ### Conditional Distribution and Conditional Expectation
-Just as all variables have a distribution, all _y_ variables have a __conditional distribution__ if conditioned on an _x_ variable. The simplest case is a binary _x_ when the conditional distribution of _y_ is two distributions, one for each of the two _x_ values.
 
-Conditional distributions with few _x_ values are best presented by visualization: for each _x_ value we show stacked bar charts if _y_ has few values or histograms if _y_ is a quantitative variable with many values. Make sure that the histograms are fully comparable across the _x_ values: most importantly, they have the same bins of _y_, and they have the same scale on the vertical axis. Comparing histograms can reveal qualitative differences in the distributions. To make quantitative comparisons,  however, we need to compare statistics that summarize the important features of distributions.
+Just as all variables have a distribution, all *y* variables have a **conditional distribution** if conditioned on an *x* variable. The simplest case is a binary *x* when the conditional distribution of *y* is two distributions, one for each of the two *x* values.
 
-The most important conditional statistics is the __conditional mean__, also known as the __conditional expectation__, which shows the mean of _y_ for each value of _x_: $E[y|x]$. Note that while the overall mean of _y_, $E[y]$, is a single number in a data table, the conditional mean, $E[y|x]$, varies in the data, because it can be different values of _x_.
+Conditional distributions with few *x* values are best presented by visualization: for each *x* value we show stacked bar charts if *y* has few values or histograms if *y* is a quantitative variable with many values. Make sure that the histograms are fully comparable across the *x* values: most importantly, they have the same bins of *y*, and they have the same scale on the vertical axis. Comparing histograms can reveal qualitative differences in the distributions. To make quantitative comparisons, however, we need to compare statistics that summarize the important features of distributions.
 
-Analogously, we can look at conditional medians, standard deviations, and so on. Comparing box plots and violin plots is a great way to visualize conditional statistics of _y_ when _x_ has few values.
+The most important conditional statistics is the **conditional mean**, also known as the **conditional expectation**, which shows the mean of *y* for each value of *x*: $E[y|x]$. Note that while the overall mean of *y*, $E[y]$, is a single number in a data table, the conditional mean, $E[y|x]$, varies in the data, because it can be different values of *x*.
 
-### Conditional Distribution and Conditional Expectation with Quantitative _x_
-When the _x_ is quantitative with many values, it is usually impossible or impractical to plot histograms or compute the conditional mean for each value of _x_. First, there are too many values of _x_ and, typically, too few observations for each value. Second, even if we had enough observations, the resulting statistics or pictures would typically be too complex to make sense of. We have two approaches to deal with these problems. The first approach circumvents the problem of too many _x_ values by reducing them through creating bins. Creating bins from _x_ is not only the simplest approach, but it often produces powerful results. Usually with just three bins of _x_ we can capture the most important patterns of association between a quantitative _y_ and a quantitative _x_.
+Analogously, we can look at conditional medians, standard deviations, and so on. Comparing box plots and violin plots is a great way to visualize conditional statistics of *y* when *x* has few values.
 
-Visualization of conditional means of _y_ for bins of _x_ is called a __bin scatter__. A bin scatter is a figure with the values of the binned _x_ on the horizontal axis and the corresponding conditional mean values of the binned _y_ on the vertical axis. It is a good practice to visualize bin scatters with meaningful _x_ values for the _x_ bins. The second approach keeps _x_ as it is. The most widely used tool is the __scatterplot__, which is a visualization of the __joint distribution__ of two variables. The joint distribution of two variables is the frequency of each value combination of the two variables.
+### Conditional Distribution and Conditional Expectation with Quantitative *x*
+
+When the *x* is quantitative with many values, it is usually impossible or impractical to plot histograms or compute the conditional mean for each value of *x*. First, there are too many values of *x* and, typically, too few observations for each value. Second, even if we had enough observations, the resulting statistics or pictures would typically be too complex to make sense of. We have two approaches to deal with these problems. The first approach circumvents the problem of too many *x* values by reducing them through creating bins. Creating bins from *x* is not only the simplest approach, but it often produces powerful results. Usually with just three bins of *x* we can capture the most important patterns of association between a quantitative *y* and a quantitative *x*.
+
+Visualization of conditional means of *y* for bins of *x* is called a **bin scatter**. A bin scatter is a figure with the values of the binned *x* on the horizontal axis and the corresponding conditional mean values of the binned *y* on the vertical axis. It is a good practice to visualize bin scatters with meaningful *x* values for the *x* bins. The second approach keeps *x* as it is. The most widely used tool is the **scatterplot**, which is a visualization of the **joint distribution** of two variables. The joint distribution of two variables is the frequency of each value combination of the two variables.
 
 ```{r conditional_distributions}
 # CASE STUDY: Management quality and firm size: describing patterns of association
@@ -1098,32 +1107,30 @@ p6 <- ggplot(data = wms, aes(x = emp3bins, y = management, color = emp3bins, fil
   theme_bg()
 p6
 ```
+
 ### Dependence, Covariance and Correlation
-__Dependence of two variables__, also called __statistical dependence__ means that the conditional distributions of one variable _(y)_ are not the same when conditional on different values of the other variable _(x)_. In contrast, __independence of variables__ means that the distribution of one conditional on the other is the same, regardless of the value of the conditioning variable. Dependence of _y_ and _x_ may take many forms, but the most important form of dependence is __mean-dependence__: the mean of _y_ is different when the value of _x_ is different.
 
-The __covariance__ and the __correlation coefficient__ are measures of this mean-dependence. The two measures are very closely related: the correlation coefficient is the standardized version of the covariance.
+**Dependence of two variables**, also called **statistical dependence** means that the conditional distributions of one variable *(y)* are not the same when conditional on different values of the other variable *(x)*. In contrast, **independence of variables** means that the distribution of one conditional on the other is the same, regardless of the value of the conditioning variable. Dependence of *y* and *x* may take many forms, but the most important form of dependence is **mean-dependence**: the mean of *y* is different when the value of *x* is different.
 
-The formula for the covariance between two variables _x_ and _y_ in a dataset with _n_ observations is:
-$$Cov[x, y] = \frac{\sum_i(x_i -\hat x)(y_i - \hat y)}{n}$$
-The correlation coefficient divides this by the product of the two standard deviations:
-$$Corr[x, y] = \frac{Cov[x, y]}{Std[x]Std[y]}$$
-The covariance may be any positive or negative number, while the correlation coefficient is bound to be between -1 and 1. But their sign is always the same: the covariance is zero when the correlation coefficient is zero 
-__(uncorrelated)__; the covariance is positive when the correlation coefficient is positive __(positively correlated)__; the covariance is negative when the correlation coefficient is negative __(negative correlated)__. The magnitude of the correlation coefficient shows the strength of the association: a correlation of 0.2 or less can be considered weak, and a correlation above 0.7 is usually considered strong. If two variables are independent, the covariance and the correlation coefficient are both zero.
+The **covariance** and the **correlation coefficient** are measures of this mean-dependence. The two measures are very closely related: the correlation coefficient is the standardized version of the covariance.
+
+The formula for the covariance between two variables *x* and *y* in a dataset with *n* observations is: $$Cov[x, y] = \frac{\sum_i(x_i -\hat x)(y_i - \hat y)}{n}$$ The correlation coefficient divides this by the product of the two standard deviations: $$Corr[x, y] = \frac{Cov[x, y]}{Std[x]Std[y]}$$ The covariance may be any positive or negative number, while the correlation coefficient is bound to be between -1 and 1. But their sign is always the same: the covariance is zero when the correlation coefficient is zero **(uncorrelated)**; the covariance is positive when the correlation coefficient is positive **(positively correlated)**; the covariance is negative when the correlation coefficient is negative **(negative correlated)**. The magnitude of the correlation coefficient shows the strength of the association: a correlation of 0.2 or less can be considered weak, and a correlation above 0.7 is usually considered strong. If two variables are independent, the covariance and the correlation coefficient are both zero.
 
 ### From Laten Variables to Observed Variables
-Often, the _y_ or _x_ variables we have in question are abstract concepts: the quality of management of a firm, skills of an employee, health of a person...Typically, such variables are not parts of an actual dataset, and they can't be because they are too abstract. Such variables are called __latent variables__. Data analysis can help answer questions involving latent variables only by substituting observed variables for them. Those observed variables are called __proxy variables__.
+
+Often, the *y* or *x* variables we have in question are abstract concepts: the quality of management of a firm, skills of an employee, health of a person...Typically, such variables are not parts of an actual dataset, and they can't be because they are too abstract. Such variables are called **latent variables**. Data analysis can help answer questions involving latent variables only by substituting observed variables for them. Those observed variables are called **proxy variables**.
 
 Data analysis compares values of measured variables. Even if those variables are supposed to measure abstract concepts, it's never the abstract concepts themselves that we have in our data. A specific issue arises when our data contains not one but more variables that could serve as proxies to the latent variable we want to examine. The question here is how to combine multiple observed variables:
 
-* Use one of the observed variables
-* Take the average (or sum) of the observed variables
-* Use principal component analysis (PCA) to combine the observed variables
+-   Use one of the observed variables
+-   Take the average (or sum) of the observed variables
+-   Use principal component analysis (PCA) to combine the observed variables
 
 Using one measured variable and excluding the rest has the advantage of easy interpretation, and the disadvantage of discarding potentially useful information contained in the other variables.
 
-Taking the average of all measured variables makes use of all information in a simple way. When all of those variables are measured using the same scale, this approach yields a combined measure with a natural interpretation. When the variables are measured at different scales, we need to bring the observed variables to the same scale, usually by standardizing them __(z-score)__. By taking a simple average of all these variables we give them equal weight. This may be a disadvantage if some of the variables are better measures of the latent variable than others.
+Taking the average of all measured variables makes use of all information in a simple way. When all of those variables are measured using the same scale, this approach yields a combined measure with a natural interpretation. When the variables are measured at different scales, we need to bring the observed variables to the same scale, usually by standardizing them **(z-score)**. By taking a simple average of all these variables we give them equal weight. This may be a disadvantage if some of the variables are better measures of the latent variable than others.
 
-__Principal component analysis (PCA)__ is a method to give higher weights to the observable variables that are better measures. PCA finds those weights by examining how strongly they would be related with the weighted average.
+**Principal component analysis (PCA)** is a method to give higher weights to the observable variables that are better measures. PCA finds those weights by examining how strongly they would be related with the weighted average.
 
 ```{r correlation}
 # CASE STUDY: Management quality and firm size: describing patterns of association
@@ -1179,8 +1186,8 @@ cor <- wms  |>
 
 # creating a table with the average of all relevant variables for the latent
 wms_tab <- wms  |> 
-  select(emp_firm, industry_broad, management)  |> 
-  group_by(industry_broad)  |> 
+  dplyr::select(emp_firm, industry_broad, management)  |> 
+  dplyr::group_by(industry_broad)  |> 
   dplyr::summarise(Mean = mean(management), Obs = n())
 
 # adding correlation to the table
@@ -1199,10 +1206,10 @@ wms_tab$industry_broad <- wms_tab$industry_broad  |>  dplyr::recode(
 )
 
 # adding the last row with all category
-last_row <- wms_tab  |>  summarise(Mean = mean(Mean), Obs = sum(Obs), cor = mean(cor))
+last_row <- wms_tab  |>  dplyr::summarise(Mean = mean(Mean), Obs = sum(Obs), cor = mean(cor))
 last_row$industry_broad <- "All"
 
-wms_tab <- wms_tab  |>  add_row(
+wms_tab <- wms_tab  |>  dplyr::add_row(
   industry_broad = last_row$industry_broad,
   Mean = last_row$Mean,
   cor = last_row$cor,
@@ -1210,9 +1217,155 @@ wms_tab <- wms_tab  |>  add_row(
 )
 
 # formatting the table
-wms_tab <- wms_tab  |>  select(industry_broad, cor, Mean, Obs)
+wms_tab <- wms_tab  |>  dplyr::select(industry_broad, cor, Mean, Obs)
 wms_tab
 ```
+
+# CHAPTER 05: Generalization from Data (inference)
+
+The act of generalization is called **inference**: we infer something from our data about a more general phenomenon because we want to use that knowledge in some other situation. Inference is best broken down into two steps: _generalizing from the data to the general pattern it represents_, and _generalizing from that general pattern to the general pattern that is behind the situation we truly care about_.
+
+The first step is **statistical inference**, which aims at generalizing to the situation that our data represents, using statistical methods. The simplest case is a random sample that represents a well-defined **population**. The **general pattern** is a more abstract concept. For our data to represent this general pattern, it is not necessary that all variables have the same distribution. Instead, we require that the specific pattern is the same. Generalizing to a general pattern that our data represents can make sense even when our data covers an entire population.
+
+The second step is assessing the __external validity__ of the results. External validity is about whether the general pattern our data represents is the same as the general pattern that would be relevant for the situation we truly care about. If the general pattern behind the situation we care about and the data we have is the same, what we uncover from our data has high external validity for the situation we care about. If, on the other hand, the general pattern behind the situation we care about is different from the general pattern that our data represents, whatever we uncover from our data would have low external validity. External validity is best thought of as a continuum, from very high (our data represents the same general pattern we are interested in) through medium (the two general patterns are similar but not the same) to very low (the two general patterns are very different).
+
+Assessing external validity cannot be done with statistical methods. In practice, the goal of most analyses is a quantitative summary of patterns: a __statistic__. We want to infer the __true value__ of the statistic after having computed its __estimated value__ from the actual data. The true value is the value in a population or a general pattern. Thus, external validity is about the extent to which the true value of the statistic is similar in the general pattern our data represents and the general pattern that's behind the situation we care about. The goal of statistical inference is to uncover the true value of the statistic in the general pattern, or population, that our data represents. The starting point of statistical inference is the estimated value of the statistic that we calculate from our data. It is called an estimated value because the reason for calculating it is to uncover (estimate) the true value.
+
+```{r inference}
+# CASE STUDY: What likelihood of loss to expect on a stock portfolio
+# load data
+sp500 <- read_csv("input/SP500_2006_16_data.csv", na = c("", "#N/A"))
+# subsetting all the values that are NOT NAs
+sp500 <- subset(sp500, VALUE != "NA")
+
+# creating percent return
+sp500 <- sp500 |> 
+  dplyr::mutate(pct_return = (VALUE - dplyr::lag(VALUE)) / dplyr::lag(VALUE) * 100)
+
+# creating date variable
+sp500$year <- format(sp500$DATE, "%Y")
+sp500$month <- format(sp500$DATE, "%m")
+sp500$year <- as.numeric(sp500$year)
+sp500$month <- as.numeric(sp500$month)
+sp500$yearmonth <- sp500$year * 100 + sp500$month
+
+# plotting daily returns
+p1 <- ggplot(sp500, aes(pct_return)) +
+  geom_histogram_da(binwidth = 0.25, type = "frequency") +
+  geom_vline(xintercept = -5, size = 0.7, color = color[2]) +
+  labs(x = "Daily return (percent)", y = "Frequency") +
+  coord_cartesian(xlim = c(-10, 10), ylim = c(0, 400)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  geom_segment(aes(x = -6, y = 220, xend = -5, yend = 220), arrow = arrow(length = unit(0.1, "cm"))) +
+  annotate("text", x = -8, y = 220, label = "5% loss", size = 2.5) +
+  theme_bg()
+p1
+```
+## Repeated Samples, Sampling Distribution and Standard Error (SE)
+The conceptual background to statistical inference is __repeated samples__. The basic idea is that the data we observe is one example of many data sets that could have been observed. Each of those potentially observed data sets can be viewed as a sample drawn from the population, or the more abstract general pattern.
+
+The goal of statistical inference is learning the value of a statistic in the population, or general pattern, represented by our data. With repeated samples, the statistic has a distribution: its value may differ from sample to sample. Within each sample the calculated value of statistic is called an __estimate__ of the statistic. The distribution of the statistic is called its __sampling distribution__. The sampling distribution of a statistic shows the values that the estimated statistic takes across repeated samples. The most important aspect of this sampling distribution is its standard deviation: how much spread there is across repeated samples. The standard deviation of the sampling distribution has a specific name: the __standard error (SE)__ of the statistic ($se(\bar X) = \frac{\sigma}{\sqrt N}$)
+
+The sampling distribution has three important properties:
+
+1. The average of the values in repeated samples is approximately equal to its true value (the value of the entire population, or general pattern, represented by our data.) -> __unbiasedness__
+2. The sampling distribution is approximately normal. -> __approximate normality__
+3. The standard error is smaller the larger the sample, with a proportionally factor of the square root of the sample size. -> __root-n convergence__
+
+Because the sampling distribution is approximately normal, we know that the measured values fall within plus or minus two standard errors (SE) of the truth approximately 95% of the time. Similarly, we know that they fall within plus or minus 1.6 SE of the truth with a 90% chance, and within 2.6 SE with a 99% chance.
+
+
+
+```{r standard_error}
+# Create 10 000 samples, with 500 and 1000 observations in each sample, taken from sp500
+# remove first row as it has NA in pct_return
+pct_return <- sp500  |> 
+  dplyr::filter(!is.na(pct_return))  |> 
+  dplyr::pull(pct_return)
+
+# function for a specified number of samples: draws a specified number of observations from a vector, calculates the percentage of obs with greater than 5% losses 
+# 3 inputs: 'vector' is a vector of the source data, in this case pct_return. 'n_samples' is the number of samples we want to use. 
+# 'n_obs' is the number of observations in each sample
+# output is a vector
+create_samples <- function(vector, n_samples, n_obs) {
+  samples_pcloss <- c()
+  for (i in 1:n_samples) {
+    single_sample <- sample(vector, n_obs, replace = FALSE)
+    samples_pcloss[i] <- sum(single_sample < -5) / n_obs * 100
+  }
+  samples_pcloss
+}
+
+set.seed(123)
+
+# creating samples
+nobs_1000 <- create_samples(pct_return, 10000, 1000)
+nobs_500 <- create_samples(pct_return, 10000, 500)
+
+# converting results as tibble
+nobs_df <- tibble(nobs_500,nobs_1000)
+
+# calculating the se
+se <- qnorm(0.975) * sd(nobs_df$nobs_1000) / sqrt(length(nobs_df$nobs_1000))
+
+# left <- mean(nobs_df$nobs_1000) - se
+# right <- mean(nobs_df$nobs_1000) + se
+
+# plotting simulated number of days with big losses
+options(digits = 2)
+
+p2 <- ggplot(nobs_df, aes(nobs_1000)) +
+  geom_histogram(binwidth = 0.1, color = color.outline, fill = color[1], alpha = 0.8, boundary = 0, closed = "left") +
+  labs(x = "Percent of days with losses of 5% or more", y = "Frequency") +
+  geom_vline(aes(xintercept = mean(nobs_500)), color = color[2], size = 0.7) +
+  coord_cartesian(xlim = c(0, 1.5), ylim = c(0, 2500)) +
+  scale_x_continuous(expand = c(0.01, 0.01), limits = c(0, 1.5), breaks = seq(0, 1.5, by = 0.25)) +
+  scale_y_continuous(expand = c(0.00, 0.00), limits = c(0, 2500), breaks = seq(0, 2500, by = 500)) +
+  geom_segment(aes(x = 0.8, y = 2000, xend = 0.53, yend = 2000), arrow = arrow(length = unit(0.1, "cm"))) +
+  annotate("text", x = 0.85, y = 2000, label = "Mean", size = 2.5) +
+  theme_bg()
+p2
+
+# comparing density for both simulations
+p3 <- ggplot(nobs_df, aes(nobs_1000)) +
+  stat_density(geom = "line", aes(color = "n1000"), bw = 0.45, size = 1, kernel = "epanechnikov") +
+  stat_density(geom = "line", aes(nobs_500, color = "n500"), bw = 0.45, linetype = "twodash", size = 1, kernel = "epanechnikov") +
+  labs(x = "Percent of days with losses over 5%", y = "Density") +
+  geom_vline(xintercept = 0.5, colour = color[3], size = 0.7, linetype = "dashed") +
+  geom_segment(aes(x = 0.9, y = 0.72, xend = 0.65, yend = 0.72), size = 0.5, arrow = arrow(length = unit(0.1, "cm"))) +
+  annotate("text", x = 1.1, y = 0.72, label = "Larger sample", size = 2) +
+  geom_segment(aes(x = 0.9, y = 0.68, xend = 0.65, yend = 0.68), size = 0.5, arrow = arrow(length = unit(0.1, "cm"))) +
+  annotate("text", x = 1.1, y = 0.68, label = "Smaller sample", size = 2) +
+  scale_x_continuous(expand = c(0.01, 0.01), limits = c(0, 1.5), breaks = seq(0, 1.5, by = 0.25)) +
+  scale_y_continuous(expand = c(0.00, 0.00), limits = c(0, 0.8), breaks = seq(0, 0.8, by = 0.2)) +
+  scale_color_manual(name = "", values = c(n1000 = color[1], n500 = color[2])) +
+  theme_bg() +
+  theme(legend.position = "none")
+p3
+
+# plotting histogram of big loss simulations with N = 500 and N = 1000
+p4 <- ggplot(data = nobs_df) +
+  geom_histogram(aes(x = nobs_500, y = (..count..) / sum(..count..) * 100, color = "n500", fill = "n500"), binwidth = 0.2, boundary = 0, closed = "left", alpha = 0.7) +
+  geom_histogram(aes(x = nobs_1000, y = (..count..) / sum(..count..) * 100, color = "n1000", fill = "n1000"), binwidth = 0.2, boundary = 0, closed = "left", alpha = 0.1, size = 0.7) +
+  ylab("Percent") +
+  xlab("Percent of days with losses over 5%") +
+  scale_x_continuous(expand = c(0.01, 0.01), limits = c(0, 1.6), breaks = seq(0, 1.6, by = 0.2)) +
+  scale_y_continuous(expand = c(0.00, 0.00), limits = c(0, 50)) +
+  scale_color_manual(name = "", values = c(color[2], color[1])) +
+  scale_fill_manual(name = "", values = c(color[2], color[1])) +
+  theme_bg() +
+  theme(
+    legend.position = c(0.7, 0.9),
+    legend.key.size = unit(x = 0.4, units = "cm"),
+    legend.direction = "horizontal"
+  )
+p4
+
+# looking at distribution in a table
+janitor::tabyl(nobs_df$nobs_500, sort = TRUE)
+janitor::tabyl(nobs_df$nobs_1000, sort = TRUE)
+```
+
 
 # Linting
 
