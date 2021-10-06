@@ -1262,6 +1262,7 @@ p1 <- ggplot(sp500, aes(pct_return)) +
 p1
 ```
 ## Repeated Samples, Sampling Distribution and Standard Error (SE)
+
 The conceptual background to statistical inference is __repeated samples__. The basic idea is that the data we observe is one example of many data sets that could have been observed. Each of those potentially observed data sets can be viewed as a sample drawn from the population, or the more abstract general pattern.
 
 The goal of statistical inference is learning the value of a statistic in the population, or general pattern, represented by our data. With repeated samples, the statistic has a distribution: its value may differ from sample to sample. Within each sample the calculated value of statistic is called an __estimate__ of the statistic. The distribution of the statistic is called its __sampling distribution__. The sampling distribution of a statistic shows the values that the estimated statistic takes across repeated samples. The most important aspect of this sampling distribution is its standard deviation: how much spread there is across repeated samples. The standard deviation of the sampling distribution has a specific name: the __standard error (SE)__ of the statistic ($se(\bar X) = \frac{\sigma}{\sqrt N}$)
@@ -1273,8 +1274,6 @@ The sampling distribution has three important properties:
 3. The standard error is smaller the larger the sample, with a proportionally factor of the square root of the sample size. -> __root-n convergence__
 
 Because the sampling distribution is approximately normal, we know that the measured values fall within plus or minus two standard errors (SE) of the truth approximately 95% of the time. Similarly, we know that they fall within plus or minus 1.6 SE of the truth with a 90% chance, and within 2.6 SE with a 99% chance.
-
-
 
 ```{r standard_error}
 # Create 10 000 samples, with 500 and 1000 observations in each sample, taken from sp500
@@ -1306,10 +1305,11 @@ nobs_500 <- create_samples(pct_return, 10000, 500)
 nobs_df <- tibble(nobs_500,nobs_1000)
 
 # calculating the se
-se <- qnorm(0.975) * sd(nobs_df$nobs_1000) / sqrt(length(nobs_df$nobs_1000))
+se <- qnorm(0.95) * sd(nobs_df$nobs_1000) / sqrt(length(nobs_df$nobs_1000))
 
-# left <- mean(nobs_df$nobs_1000) - se
-# right <- mean(nobs_df$nobs_1000) + se
+# calculating CI
+left <- mean(nobs_df$nobs_1000) - se
+right <- mean(nobs_df$nobs_1000) + se
 
 # plotting simulated number of days with big losses
 options(digits = 2)
@@ -1317,7 +1317,7 @@ options(digits = 2)
 p2 <- ggplot(nobs_df, aes(nobs_1000)) +
   geom_histogram(binwidth = 0.1, color = color.outline, fill = color[1], alpha = 0.8, boundary = 0, closed = "left") +
   labs(x = "Percent of days with losses of 5% or more", y = "Frequency") +
-  geom_vline(aes(xintercept = mean(nobs_500)), color = color[2], size = 0.7) +
+  geom_vline(aes(xintercept = mean(nobs_1000)), color = color[2], size = 0.7) +
   coord_cartesian(xlim = c(0, 1.5), ylim = c(0, 2500)) +
   scale_x_continuous(expand = c(0.01, 0.01), limits = c(0, 1.5), breaks = seq(0, 1.5, by = 0.25)) +
   scale_y_continuous(expand = c(0.00, 0.00), limits = c(0, 2500), breaks = seq(0, 2500, by = 500)) +
@@ -1366,6 +1366,53 @@ janitor::tabyl(nobs_df$nobs_500, sort = TRUE)
 janitor::tabyl(nobs_df$nobs_1000, sort = TRUE)
 ```
 
+## The Confidence Interval
+
+The __confidence interval (CI)__ is the most important measure of statistical inference. The idea of the CI is to give us a range, in which we can expect the true value to lie with a certain probability. That probability is something data analysts need to pick. Typical probability picks are 95% or 90%.
+
+The confidence interval is constructed as a symmetric range around the estimated value of the statistic in our data. We first calculate the estimated value of the statistic in our data. Then we specify the length of the CI on the two sides of the estimated value. We use the SE to know the length of the appropriate CI. The SE is the general unit of measurement when constructing confidence intervals. The appropriate 95% CI is the $\pm$2 SE or, more precisely, 1.96 SE interval around the estimate from the data. The appropriate 90% CI is the $\pm$1.6 SE interval around the estimate from the data; and the appropriate 99% CI is the $\pm$2.6 SE interval around it.
+
+## Estimating the Standard Error with the Bootstrap Method
+
+The __bootstrap__ is a method that creates the sampling distribution across repeated samples that are representative of the same population, or general pattern, as the original data and also have the same size. The bootstrap method takes the original data and draws many repeated samples of the size of that data. The trick is that the samples are drawn with replacement. The observations are drawn randomly one by one from the original data; once an observation is drawn it is "replaced" into the pool so that it can be drawn again, with the same probability as any other observation. The drawing stops when the sample reaches the size of the original data. The result is a sample of the same size as the original data, yielding a single __bootstrap sample__. This bootstrap sample includes some of the original observations multiple times, and it does not include some of the other original observations. The distribution of a statistic across these repeated bootstrap samples is a good aproximation to the sampling distribution that would look like across samples similar to the original data.
+
+![Bootstrap samples](input/bootstrap.png)
+The bootstrap method works if the variable we consider is independent across observations. By sampling observations one by one and then replacing them into the pool to be possibly drawn again, we destroy the before-after relationships in the original data. That is not a problem if there is no relationship across observations, which is true in most cross-sectional data.
+
+Since the distribution of a statistic across bootstrap samples is a good approximation of the sampling distribution, it gives a good approximation of the standard error, too. The __bootstrap estimate of the standard error__ is the standard deviation of the estimated values of the statistic across the bootstrap samples. Once we have the standard error, we have everything we need for constructing the confidence interval of our choice.
+
+The bootstrap method have its limitations, on top of the independence, it tends to provide very poor standard error estimates in the presence of extreme values. Moreover, it may produce poor standard error estimates in small samples if the statistic is not the mean but the median or some other quantile.
+
+```{r bootstrap-se}
+set.seed(573164)
+
+M <- 10000
+
+Results <- matrix(rep(0, (M * 10)), nrow = M, ncol = 10)
+
+for (i in 1:M) {
+  bsample <- sample(sp500$pct_return, size = dim(sp500)[1], replace = TRUE)
+
+  for (j in 1:10) {
+    loss <- as.numeric(bsample < (-j)) * 100
+    Results[i, j] <- mean(loss, na.rm = T)
+  }
+}
+
+Results <- as_tibble(Results)
+names(Results) <- c(
+  "loss1", "loss2", "loss3", "loss4", "loss5", "loss6",
+  "loss7", "loss8", "loss9", "loss10"
+)
+
+p1 <- ggplot(Results, aes(loss5)) +
+  geom_histogram_da(type = "frequency", binwidth = 0.04, boundary = 0, closed = "left") +
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1200), breaks = seq(0, 1200, 200)) +
+  scale_x_continuous(expand = c(0.01, 0.01), limits = c(0, 1.2), breaks = seq(0, 1.2, 0.1)) +
+  labs(x = "Percent of days with losses of 5% or more", y = "Frequency") +
+  theme_bg()
+p1
+```
 
 # Linting
 
