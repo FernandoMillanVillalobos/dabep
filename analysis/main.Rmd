@@ -147,7 +147,7 @@ library(tidyverse, warn.conflicts = FALSE) # ggplot2, dplyr, tidyr, readr, purrr
 library(scales) # scales for ggplot2
 library(jsonlite) # json
 library(lintr) # code linting
-library(sf)
+
 library(rmarkdown)
 library(data.table)
 library(cowplot) # theme
@@ -158,16 +158,19 @@ library(ggrepel) # text labels
 library(skimr)
 library(haven)
 library(Hmisc)
-library(desc)
+
 library(reshape2)
 library(pastecs)
 library(patchwork)
 library(xtable)
 library(reticulate)
 library(binsreg)
+library(boot)
 library(janitor)", # names
   file = "manifest.R"
 )
+# library(sf)
+# library(desc)
 ```
 
 ## Install packages
@@ -1412,6 +1415,28 @@ p1 <- ggplot(Results, aes(loss5)) +
   labs(x = "Percent of days with losses of 5% or more", y = "Frequency") +
   theme_bg()
 p1
+```
+## The Standard Error Formula
+
+There is a relatively simple formula for the standard error (SE) of the average ($\bar x$). The formula includes the root-n factor and just one another element. $\bar x$ is the estimate of the true mean value of _x_ in the general pattern (or the population).
+
+The __standard error formula__ for $\bar x$ is $$SE(\bar x) = \frac{1}{\sqrt n} Std[x]$$ where $Std[x]$ is the standard deviation of the variable in the data, and _n_ is the number of observations in the data. The standard error is larger, the smaller the sample and the larger the standard deviation of the variable.
+
+```{r se-formula}
+# using the psych package to figure out the sd = 0.07
+psych::describe(sp500$pct_return > -5)
+
+# calculating the denominator of the SEM formula = 0.02
+x <- sqrt((1 / 2519))
+
+# calculating the product of both operations -> 0.02 * 0.07 = 0.0014 (0.14%) or the standard error of the mean
+sem <- x * 0.07
+sem
+
+# calculating the 95% CI
+right <- 0.5 + 2 * 0.14
+left <- 0.5 - 2 * 0.14
+c(left, right)
 ```
 
 # Linting
