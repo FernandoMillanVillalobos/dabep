@@ -354,7 +354,7 @@ div.tocify {
 
 <div id="notes" class="section level1" number="1">
 <h1><span class="header-section-number">1</span> Notes</h1>
-<p>This report was generated on 2021-10-08 16:25:38. R version: 4.1.1 on x86_64-pc-linux-gnu. For this report, CRAN packages as of 2021-06-01 were used.</p>
+<p>This report was generated on 2021-10-11 15:24:59. R version: 4.1.1 on x86_64-pc-linux-gnu. For this report, CRAN packages as of 2021-06-01 were used.</p>
 <p>…</p>
 <div id="r-script-data" class="section level2" number="1.1">
 <h2><span class="header-section-number">1.1</span> R-Script &amp; Data</h2>
@@ -519,7 +519,7 @@ div.tocify {
 ##  [1] colorspace_2.0-2    ellipsis_0.3.2      rprojroot_2.0.2    
 ##  [4] snakecase_0.11.0    htmlTable_2.2.1     base64enc_0.1-3    
 ##  [7] fs_1.5.0            remotes_2.4.1       fansi_0.5.0        
-## [10] lubridate_1.7.10    xml2_1.3.2          splines_4.1.1      
+## [10] lubridate_1.8.0     xml2_1.3.2          splines_4.1.1      
 ## [13] mnormt_2.0.2        knitr_1.36          broom_0.7.9        
 ## [16] Rttf2pt1_1.3.8      cluster_2.1.2       dbplyr_2.1.1       
 ## [19] png_0.1-7           compiler_4.1.1      httr_1.4.2         
@@ -2151,6 +2151,14 @@ div.tocify {
 <span id="cb131-3"><a href="#cb131-3" aria-hidden="true" tabindex="-1"></a>left <span class="ot">&lt;-</span> <span class="fl">0.5</span> <span class="sc">-</span> <span class="dv">2</span> <span class="sc">*</span> <span class="fl">0.14</span></span>
 <span id="cb131-4"><a href="#cb131-4" aria-hidden="true" tabindex="-1"></a><span class="fu">c</span>(left, right)</span></code></pre></div>
 <pre><code>## [1] 0.22 0.78</code></pre>
+</div>
+<div id="external-validity" class="section level2" number="6.3">
+<h2><span class="header-section-number">6.3</span> External Validity</h2>
+<p>The confidence interval summarizes uncertainty about the true value of the statistics in the population, or the general pattern, that our data represents. An important part in inference is defining the population, or general pattern, we care about (the future), and assessing how close it is to the population, or general pattern, our data represents (the past). <strong>External validity</strong> is the concept that captures the similarity of those two general patterns.</p>
+<p>With <em>high</em> external validity, the confidence interval captures all uncertainty about our estimate. With <em>low</em> external validity, it does not. To assess external validity we need substantive knowledge of the situation. The most important challenges to external validity may be collected in three groups: <strong>time</strong>, <strong>space</strong>, and <strong>sub-groups</strong>.</p>
+<p>First, <em>stability in time</em>. The data we analyze is always from the past, whereas the situation we care about is almost always in the future. Thus, in order to generalize from the data, we need to assume that the general pattern that was relevant in the past will remain relevant for the future. A specific issue with time is the occurrence of extreme values. Our data may be free of extreme values because some very rare extreme events may not have happened in the historic period that our data represents. However, this does not imply that such a rare extreme event could not happen in the future we care about.</p>
+<p>Second, <em>stability through space</em>. The data we analyze may come from a different country, region, or city than the situation we care about.</p>
+<p>Third, <em>stability across subgroups</em>. A pattern may be strong among one group of people, but it may not be there for people in different professional, age, gender, cultural, or income groups.</p>
 </div>
 </div>
 <div id="linting" class="section level1" number="7">
