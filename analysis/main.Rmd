@@ -1438,6 +1438,17 @@ right <- 0.5 + 2 * 0.14
 left <- 0.5 - 2 * 0.14
 c(left, right)
 ```
+## External Validity
+
+The confidence interval summarizes uncertainty about the true value of the statistics in the population, or the general pattern, that our data represents. An important part in inference is defining the population, or general pattern, we care about (the future), and assessing how close it is to the population, or general pattern, our data represents (the past). __External validity__ is the concept that captures the similarity of those two general patterns. 
+
+With _high_ external validity, the confidence interval captures all uncertainty about our estimate. With _low_ external validity, it does not. To assess external validity we need substantive knowledge of the situation. The most important challenges to external validity may be collected in three groups: __time__, __space__, and __sub-groups__. 
+
+First, _stability in time_. The data we analyze is always from the past, whereas the situation we care about is almost always in the future. Thus, in order to generalize from the data, we need to assume that the general pattern that was relevant in the past will remain relevant for the future. A specific issue with time is the occurrence of extreme values. Our data may be free of extreme values because some very rare extreme events may not have happened in the historic period that our data represents. However, this does not imply that such a rare extreme event could not happen in the future we care about.
+
+Second, _stability through space_. The data we analyze may come from a different country, region, or city than the situation we care about.
+
+Third, _stability across subgroups_. A pattern may be strong among one group of people, but it may not be there for people in different professional, age, gender, cultural, or income groups.
 
 # Linting
 
