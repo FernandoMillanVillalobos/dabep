@@ -166,6 +166,7 @@ library(xtable)
 library(reticulate)
 library(binsreg)
 library(boot)
+library(modelsummary)
 library(janitor)", # names
   file = "manifest.R"
 )
@@ -940,7 +941,7 @@ wms_lean <- wms |>
   dplyr::group_by(emp3bins, lean1) |>
   dplyr::summarise(Count = n()) |>
   dplyr::mutate(Percent = round(Count / sum(Count), digits = 5)) |>
-  dplyr::ungroup() # use %>% ungroup() when do multiple times group_by
+  dplyr::ungroup() # use |> ungroup() when do multiple times group_by
 
 # plotting lean management
 p1 <- ggplot(data = wms_lean, aes(x = emp3bins, y = Percent, fill = factor(lean1, levels = rev(unique(lean1))))) +
@@ -1137,7 +1138,6 @@ Taking the average of all measured variables makes use of all information in a s
 
 ```{r correlation}
 # CASE STUDY: Management quality and firm size: describing patterns of association
-
 # calculating overall correlation coefficient
 cor(wms$management, wms$emp_firm, use = "complete.obs")
 
@@ -1264,6 +1264,7 @@ p1 <- ggplot(sp500, aes(pct_return)) +
   theme_bg()
 p1
 ```
+
 ## Repeated Samples, Sampling Distribution and Standard Error (SE)
 
 The conceptual background to statistical inference is __repeated samples__. The basic idea is that the data we observe is one example of many data sets that could have been observed. Each of those potentially observed data sets can be viewed as a sample drawn from the population, or the more abstract general pattern.
@@ -1279,6 +1280,7 @@ The sampling distribution has three important properties:
 Because the sampling distribution is approximately normal, we know that the measured values fall within plus or minus two standard errors (SE) of the truth approximately 95% of the time. Similarly, we know that they fall within plus or minus 1.6 SE of the truth with a 90% chance, and within 2.6 SE with a 99% chance.
 
 ```{r standard_error}
+# CASE STUDY: What Likelihood of Loss to Expect on a Stock Portfolio?
 # Create 10 000 samples, with 500 and 1000 observations in each sample, taken from sp500
 # remove first row as it has NA in pct_return
 pct_return <- sp500  |> 
@@ -1387,6 +1389,7 @@ Since the distribution of a statistic across bootstrap samples is a good approxi
 The bootstrap method have its limitations, on top of the independence, it tends to provide very poor standard error estimates in the presence of extreme values. Moreover, it may produce poor standard error estimates in small samples if the statistic is not the mean but the median or some other quantile.
 
 ```{r bootstrap-se}
+# CASE STUDY: What Likelihood of Loss to Expect on a Stock Portfolio?
 set.seed(573164)
 
 M <- 10000
@@ -1423,6 +1426,7 @@ There is a relatively simple formula for the standard error (SE) of the average 
 The __standard error formula__ for $\bar x$ is $$SE(\bar x) = \frac{1}{\sqrt n} Std[x]$$ where $Std[x]$ is the standard deviation of the variable in the data, and _n_ is the number of observations in the data. The standard error is larger, the smaller the sample and the larger the standard deviation of the variable.
 
 ```{r se-formula}
+# CASE STUDY: What Likelihood of Loss to Expect on a Stock Portfolio?
 # using the psych package to figure out the sd = 0.07
 psych::describe(sp500$pct_return > -5)
 
@@ -1438,6 +1442,7 @@ right <- 0.5 + 2 * 0.14
 left <- 0.5 - 2 * 0.14
 c(left, right)
 ```
+
 ## External Validity
 
 The confidence interval summarizes uncertainty about the true value of the statistics in the population, or the general pattern, that our data represents. An important part in inference is defining the population, or general pattern, we care about (the future), and assessing how close it is to the population, or general pattern, our data represents (the past). __External validity__ is the concept that captures the similarity of those two general patterns. 
@@ -1449,6 +1454,106 @@ First, _stability in time_. The data we analyze is always from the past, whereas
 Second, _stability through space_. The data we analyze may come from a different country, region, or city than the situation we care about.
 
 Third, _stability across subgroups_. A pattern may be strong among one group of people, but it may not be there for people in different professional, age, gender, cultural, or income groups.
+
+# CHAPTER 06: Testing Hypotheses
+
+A hypothesis is a statement about a population, or general pattern. Testing a hypothesis amounts to gathering information from a dataset and, based on that information, deciding whether that hypothesis is false or true in the population, or general pattern. Thus, __hypothesis testing__ means analyzing the data at hand to make a decision about the hypothesis. Two decisions are possible: rejecting the hypothesis or not rejecting it. We reject the hypothesis if there is enough evidence against it. We don't reject it if there isn't enough evidence against it. We may have insufficient evidence against a hypothesis either if the hypothesis is true or if it is not true but the evidence is weak.
+
+Testing a hypothesis is a way of making an inference, with a focus on a specific statement. As with any kind of inference, we have to assess external validity. The first step is defining the statistic that would answer our question. Often that statistic is an _average_, or the _difference between two average_ values.
+
+```{r dist-online-offline}
+# CASE STUDY: Comparing Online and Offline Prices: Testing the Difference
+pd <- read.csv("input/online_offline_ALL_clean.csv")
+
+# filter the data
+pd <- pd |>
+  filter(COUNTRY == "USA") |>
+  filter(PRICETYPE == "Regular Price") |>
+  filter(is.na(sale_online)) |>
+  filter(!is.na(price)) |>
+  filter(!is.na(price_online))
+
+# drop errors (+1000 dollars)
+pd <- pd |> filter(price < 1000)
+
+# creating diff variable
+pd <- pd |> mutate(diff = price_online - price)
+
+# Check the main descriptives
+modelsummary::datasummary(diff ~ Mean + SD + Min + Max + Median + Max, data = pd)
+
+# plotting online-offline price differences
+p1 <- ggplot(data = pd, aes(diff)) +
+  geom_histogram(
+    binwidth = 5, boundary = 0, closed = "left",
+    fill = color[1], size = 0.25, alpha = 0.8, show.legend = F, na.rm = TRUE
+  ) +
+  labs(x = "Online - offline price difference (US dollars)", y = "Frequency") +
+  theme_bg() +
+  scale_x_continuous(limits = c(-420, 420), breaks = seq(-400, 420, by = 100)) +
+  scale_y_continuous(limits = c(0, 6000), breaks = seq(0, 6000, by = 1000), expand = c(0.01, 0.01)) +
+  geom_segment(aes(x = 300, y = 500, xend = 415, yend = 20), arrow = arrow(length = unit(0.1, "cm"))) +
+  annotate("text", x = 300, y = 700, label = "max value= 415", size = 2.5) +
+  geom_segment(aes(x = -280, y = 500, xend = -380, yend = 20), arrow = arrow(length = unit(0.1, "cm"))) +
+  annotate("text", x = -300, y = 700, label = "min value= -380", size = 2.5)
+p1
+
+# 4.99999 not 5 -- needed because of data imported from stata may be stored wierdly. 
+# pd1 <- subset(pd, abs(pd$diff) < 4.999999)
+# Hmisc::describe(pd1$diff)
+
+# plotting online-offline price differences (+-5 dollar price difference) 
+p2 <- ggplot(data = pd, aes(diff)) +
+  geom_histogram(
+    binwidth = 0.5, boundary = -0, closed = "left",
+    color = color.outline, fill = color[1], size = 0.25, alpha = 0.8, show.legend = F, na.rm = TRUE
+  ) +
+  labs(x = "Online - offline price difference (US dollars)", y = "Frequency") +
+  theme_bg() +
+  expand_limits(x = 0.01, y = 0.01) +
+  scale_x_continuous(limits = c(-5, 5), breaks = seq(-5, 5, by = 1)) +
+  scale_y_continuous(expand = c(0.00, 0.00), limits = c(0, 5000), breaks = seq(0, 5000, by = 1000))
+p2
+
+p1 | p2   
+```
+## Null Hypothesis, Alternative Hypothesis
+
+After specifying the statistic that helps answer our question, we need to state two competing hypotheses, of which only one can be true. The first one is the __null hypothesis__ ($H_0$), the second one is the __alternative hypothesis__ ($H_1$). These hypotheses are formulated in terms of the unknown __true value__ of the statistics. Together, the null and the alternative should cover all possibilities we are interested in. $$H_0: s_{true}  = 0 \\ H_1: s_{true} \not =  0$$
+
+The case when we test if $H_1 : s_{true} \not = 0$ is called __two-sided alternative__ as it allows for $s_t$ to be either greater than zero or less than zero. The other case is working with a __one-sided alternative__, when we are indeed interested if a statistic is positive. $$H_0 : s_{true} \le 0 \\ H_1 : s_{true} \gt 0$$
+
+## The t-Test
+
+Following the logic of hypothesis testing, when we look at the evidence to see if we want to reject the null or maintain our assumption that it's true, the evidence we look for is how far the estimated value of the statistic is from zero, its hypothesized value. We reject the null if the estimate is large, and we do not reject it if the estimate is not very far. How far is far enough for rejecting requires a measure of the distance -> the __t-statistic__. More generally, the t-statistic is a __test statistic__. __A test statistic is a measure of the distance of the estimated value of the statistic from what its true value would be if $H_0$ were true__.
+
+Consider $H_0: s_{true} = 0$ , $H_1: s_{true} \not =  0$, where $s$ is an average, or the difference of that average from a number, or a difference of two averages. The null and alternative are about the true value of the statistic: $s_{true}$. Our data contains information to compute the estimated value of the statistic: $\hat{s}$. The t-statistic for this hypotheses uses the estimated value $\hat{s}$ and its standard error: $$t = \frac{\hat{s}}{SE(\hat{s})}$$ When $\hat{s}$ is the average of a variable _x_, the t-statistic is simply $$t = \frac{\bar{x}}{SE(\bar{x})}$$ When $\hat{s}$ is the average of a variable _x_ minus a number, the t-statistic is $$t = \frac{\hat{x} - number}{SE(\hat{x})}$$ When $\hat{s}$ is the difference between two averages, say, $\bar{x}_A$ and $\bar{x}_B$, the t-statistic is $$t = \frac{\bar{x}_A - \bar{x}_B}{SE(\bar{x}_A - \bar{x}_B)}$$
+
+The sign of the t-statistic is the same as the sign of $\hat{s}$. If $\hat{s}$ is positive, the t-statistic is positive; if $\hat{s}$ is negative, the t-statistic is negative. The magnitude of the t-statistic measures the distance of $\hat{s}$ from what $s_{true}$ would be if the null were true. The unit of distance is the standard error.
+
+## Making a Decision; False Negatives, False Positives
+
+In hypothesis testing the decision of rejecting the null or not rejecting it is based on a clear rule specified in advance. To be specific, the decision rule in statistical testing is comparing the test statistic to a __critical value__. The critical value thus tell us whether the test statistic is large enough to reject the null. To be transparent, we need to set the critical value before looking at the test statistic, but the practice is to use a commonly accepted critical value. The critical value reflects a preference for how conservative we want to be with the evidence.
+
+We can make one of two decisions with hypothesis testing: we reject the null or we don't reject the null. That decision may be right or wrong. We say that our decision is a __false positive__ (\_Type-I error\_) if we reject the null when it is true, and a __false negative__ (\_Type-II error\_) if we do not reject the null even though it's not true. False positives and false negatives are both wrong, but they are not equally wrong. The way we set up the null and the alternative, wrongly rejecting the null is a bigger mistake than wrongly accepting it. Therefore, the critical value is to be chosen in a way that makes false positives rare.
+
+Talking about a t-test for a null with a two-side alternative, a commonly applied critical value for a t-statistic is $\pm2$: reject the null if the t-statistic is smaller than -2 or larger than +2; don't reject the null if the t-statistic is between -2 and +2. That way the probability of a false positive is 5%. Based on the same argument, we can set other critical values that correspond to different probabilities of a false positive. If we make the critical values -2.6 and +2.6, the chance of a false positive is 1%. With critical values -1.6 and +1.6 it is 10%. Data analysts avoid biases using the same $\pm2$ critical value of the t-test regardless of the data and hypothesis they are testing.
+
+The chance of a false negative depends on two things: how far the true value is from the value defined in the null hypothesis, and how large the sample is. The probability of a false positive is called the __size of the test__. The maximum probability that we tolerate is the __level of significance__. When we fix the level of significance at 5% and end up rejecting the null, we say that the statistic we tested is significant at 5%. The probability of avoiding a false negative is the __power of the test__. Thus, we usually fix the level of significance at 5% and hope for a high power, which is more likely the larger the sample and the further away the true value is from what's in the null. Tests with more observations are more power in general.
+
+## The p-Value
+
+The __p-value__ informs us about the probability of a _false positive_. To be more precise, the p-value is the probability that the test statistic will be as large as, or larger than, what we calculate from the data, _if the null hypothesis is true_. Thus, the p-value is the smallest significance level at which we can reject $H_0$ given the value of the test statistic in the data. Because the p-value tells us the smallest level of significance at which we can reject the null, it summarizes all the information we need to make the decision.
+
+```{r t-statistic}
+# CASE STUDY: Comparing Online and Offline Prices: Testing the Difference
+t.test(pd$diff, mu = 0)
+```
+Conclusion: The t-statistic (0.4) is well within $\pm2$, thus we can't reject the hypothesis that the average price difference is zero in the population of products represented by the data. Doing so would be inconsistent with our goal to keep the probability of false positive below 5%. 
+
+We arrive at the same conclusion with the help of the p-value (0.7). That means that there is a 66% chance that we could observe a price difference of this magnitude (or a larger one) if the null is true. It also means that the smallest level of significance at which we could reject the null is 66%, well over the 5% level of significance we have chosen.
+
+Finally, we would arrive to a similar conclusion if we just looked at the 95% CI of the average price difference. The CI contains zero. So the value of the true average price difference may very well be zero. It also shows that it's very unlikely that the true average price is more than +0.30 or -0.19 cents.
 
 # Linting
 
