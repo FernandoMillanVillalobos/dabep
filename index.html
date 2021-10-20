@@ -356,7 +356,7 @@ div.tocify {
 
 <div id="notes" class="section level1" number="1">
 <h1><span class="header-section-number">1</span> Notes</h1>
-<p>This report was generated on 2021-10-13 15:04:03. R version: 4.1.1 on x86_64-pc-linux-gnu. For this report, CRAN packages as of 2021-06-01 were used.</p>
+<p>This report was generated on 2021-10-20 15:40:56. R version: 4.1.1 on x86_64-pc-linux-gnu. For this report, CRAN packages as of 2021-06-01 were used.</p>
 <p>…</p>
 <div id="r-script-data" class="section level2" number="1.1">
 <h2><span class="header-section-number">1.1</span> R-Script &amp; Data</h2>
@@ -520,7 +520,7 @@ div.tocify {
 ## 
 ## loaded via a namespace (and not attached):
 ##  [1] colorspace_2.0-2    ellipsis_0.3.2      rprojroot_2.0.2    
-##  [4] snakecase_0.11.0    htmlTable_2.2.1     base64enc_0.1-3    
+##  [4] snakecase_0.11.0    htmlTable_2.3.0     base64enc_0.1-3    
 ##  [7] fs_1.5.0            remotes_2.4.1       fansi_0.5.0        
 ## [10] lubridate_1.8.0     xml2_1.3.2          splines_4.1.1      
 ## [13] mnormt_2.0.2        knitr_1.36          broom_0.7.9        
@@ -532,7 +532,7 @@ div.tocify {
 ## [31] glue_1.4.2          tables_0.9.6        Rcpp_1.0.7         
 ## [34] cellranger_1.1.0    jquerylib_0.1.4     vctrs_0.3.8        
 ## [37] nlme_3.1-152        extrafontdb_1.0     xfun_0.26          
-## [40] ps_1.6.0            rvest_1.0.1         lifecycle_1.0.1    
+## [40] ps_1.6.0            rvest_1.0.2         lifecycle_1.0.1    
 ## [43] zoo_1.8-9           hms_1.1.1           sandwich_3.0-1     
 ## [46] rex_1.2.0           parallel_4.1.1      RColorBrewer_1.1-2 
 ## [49] yaml_2.2.1          gridExtra_2.3       sass_0.4.0         
@@ -2313,18 +2313,301 @@ diff
 <p>We arrive at the same conclusion with the help of the p-value (0.7). That means that there is a 66% chance that we could observe a price difference of this magnitude (or a larger one) if the null is true. It also means that the smallest level of significance at which we could reject the null is 66%, well over the 5% level of significance we have chosen.</p>
 <p>Finally, we would arrive to a similar conclusion if we just looked at the 95% CI of the average price difference. The CI contains zero. So the value of the true average price difference may very well be zero. It also shows that it’s very unlikely that the true average price is more than +0.30 or -0.19 cents.</p>
 </div>
+<div id="steps-of-hypothesis-testing" class="section level2" number="7.4">
+<h2><span class="header-section-number">7.4</span> Steps of Hypothesis Testing</h2>
+<ol style="list-style-type: decimal">
+<li>Define the <strong>statistic</strong> that corresponds to your question.</li>
+<li>Initial assessment of <strong>external validity</strong>: general pattern of interest, general pattern represented by the data.</li>
+<li>State the <strong>null</strong> and <strong>alternative</strong> hypotheses.</li>
+<li>Choose a <strong>critical value</strong>. In practice, that should correspond to 5%.</li>
+<li>Calculate the <strong>test statistic</strong> from the data.</li>
+<li>Make a decision based on the calculated test statistic and the critical value.</li>
+<li>Alternative to steps 4-6, calculate the <strong>p-value</strong> and make a decision by comparing it to a pre-set level of significance that in practice will usually be 5%.</li>
+<li>Interpret the results.</li>
+<li>Final assessment of external validity. Would the same decision be fine for the population, or general pattern, of interest</li>
+</ol>
+</div>
+<div id="one-sided-alternatives" class="section level2" number="7.5">
+<h2><span class="header-section-number">7.5</span> One-Sided Alternatives</h2>
+<p>Testing a null hypothesis against a one-sided alternative means having an inequality in the null hypothesis instead of an equality: <span class="math inline">\(H_0:s_{true} \le 0\)</span> against <span class="math inline">\(H_1:s_{true} \gt 0\)</span> and <span class="math inline">\(H_0:s_{true} \ge 0\)</span> against <span class="math inline">\(H_1:s_{true} \lt 0\)</span>. Having only one of the inequalities leads to focusing on one side of the test statistic only. Focusing on deviations in one direction means that we care about one half of the sampling distribution of the test statistic.</p>
+<p>The probability of a false positive is smaller in this case. We don’t reject the null if the test statistic falls in the region that is specified in the null hypothesis. Thus, we make a false positive decision only half of the time. The probability of a false positive decision here is therefore half of the probability of a false positive in the corresponding two-sided test.</p>
+<p>Therefore, the practical way to test a one-sided hypothesis is a two-step procedure.</p>
+<ol style="list-style-type: decimal">
+<li>If the test statistic is in the region of the null, don’t reject the null. This happens if <span class="math inline">\(\hat s\)</span> is in the region of null (<span class="math inline">\(H_0:s_{true} \le 0\)</span> against <span class="math inline">\(H_1:s_{true} \gt 0\)</span>).</li>
+<li>If the test statistic is in the region of the alternative, calculate the p-value of the null hypothesis of the equality and divide the p-value by two.</li>
+</ol>
+</div>
+<div id="testing-multiple-hypotheses" class="section level2" number="7.6">
+<h2><span class="header-section-number">7.6</span> Testing Multiple Hypotheses</h2>
+<p>The simplest decision rule to testing a hypothesis consists of calculating a p-value from the data and comparing it to a pre-set level of significance. So far, we have considered cases with one pair of hypotheses: a null and an alternative. Often, though, data analysis involves testing multiple null hypotheses, each with and an alternative. Testing multiple hypotheses is an issue because the statistical theory of testing, and the corresponding tools, have been developed for testing a single null hypothesis. In multiple hypothesis testing, the question is the likelihood that any one of the true nulls will be wrongfully rejected.</p>
+<div class="sourceCode" id="cb139"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb139-1"><a href="#cb139-1" aria-hidden="true" tabindex="-1"></a><span class="co"># CASE STUDY: Comparing Online and Offline Prices: Testing the Difference</span></span>
+<span id="cb139-2"><a href="#cb139-2" aria-hidden="true" tabindex="-1"></a><span class="co"># calculating multiple hypotheses for each retailer in the data (16)</span></span>
+<span id="cb139-3"><a href="#cb139-3" aria-hidden="true" tabindex="-1"></a>spd <span class="ot">&lt;-</span> <span class="fu">split</span>(pd, pd<span class="sc">$</span>retailer, <span class="at">drop =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb139-4"><a href="#cb139-4" aria-hidden="true" tabindex="-1"></a>out <span class="ot">&lt;-</span> <span class="fu">vector</span>(<span class="st">&quot;list&quot;</span>, <span class="at">length =</span> <span class="fu">length</span>(spd))</span>
+<span id="cb139-5"><a href="#cb139-5" aria-hidden="true" tabindex="-1"></a>out <span class="ot">&lt;-</span> <span class="fu">lapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(spd), <span class="cf">function</span>(x) out[[x]] <span class="ot">&lt;-</span> <span class="fu">t.test</span>(spd[[x]]<span class="sc">$</span>diff, <span class="at">mu =</span> <span class="dv">0</span>))</span>
+<span id="cb139-6"><a href="#cb139-6" aria-hidden="true" tabindex="-1"></a>out</span></code></pre></div>
+<pre><code>## [[1]]
+## 
+##  One Sample t-test
+## 
+## data:  spd[[x]]$diff
+## t = 2, df = 119, p-value = 0.04
+## alternative hypothesis: true mean is not equal to 0
+## 95 percent confidence interval:
+##  0.21 7.27
+## sample estimates:
+## mean of x 
+##       3.7 
+## 
+## 
+## [[2]]
+## 
+##  One Sample t-test
+## 
+## data:  spd[[x]]$diff
+## t = -1, df = 545, p-value = 0.2
+## alternative hypothesis: true mean is not equal to 0
+## 95 percent confidence interval:
+##  -3.16  0.73
+## sample estimates:
+## mean of x 
+##      -1.2 
+## 
+## 
+## [[3]]
+## 
+##  One Sample t-test
+## 
+## data:  spd[[x]]$diff
+## t = -12, df = 1398, p-value &lt;0.0000000000000002
+## alternative hypothesis: true mean is not equal to 0
+## 95 percent confidence interval:
+##  -0.50 -0.36
+## sample estimates:
+## mean of x 
+##     -0.43 
+## 
+## 
+## [[4]]
+## 
+##  One Sample t-test
+## 
+## data:  spd[[x]]$diff
+## t = 2, df = 522, p-value = 0.1
+## alternative hypothesis: true mean is not equal to 0
+## 95 percent confidence interval:
+##  -0.0094  0.1127
+## sample estimates:
+## mean of x 
+##     0.052 
+## 
+## 
+## [[5]]
+## 
+##  One Sample t-test
+## 
+## data:  spd[[x]]$diff
+## t = 2, df = 267, p-value = 0.03
+## alternative hypothesis: true mean is not equal to 0
+## 95 percent confidence interval:
+##  0.032 0.809
+## sample estimates:
+## mean of x 
+##      0.42 
+## 
+## 
+## [[6]]
+## 
+##  One Sample t-test
+## 
+## data:  spd[[x]]$diff
+## t = 1, df = 233, p-value = 0.2
+## alternative hypothesis: true mean is not equal to 0
+## 95 percent confidence interval:
+##  -1.3  6.1
+## sample estimates:
+## mean of x 
+##       2.4 
+## 
+## 
+## [[7]]
+## 
+##  One Sample t-test
+## 
+## data:  spd[[x]]$diff
+## t = 2, df = 513, p-value = 0.1
+## alternative hypothesis: true mean is not equal to 0
+## 95 percent confidence interval:
+##  -0.12  1.33
+## sample estimates:
+## mean of x 
+##      0.61 
+## 
+## 
+## [[8]]
+## 
+##  One Sample t-test
+## 
+## data:  spd[[x]]$diff
+## t = 2, df = 316, p-value = 0.06
+## alternative hypothesis: true mean is not equal to 0
+## 95 percent confidence interval:
+##  -0.014  0.582
+## sample estimates:
+## mean of x 
+##      0.28 
+## 
+## 
+## [[9]]
+## 
+##  One Sample t-test
+## 
+## data:  spd[[x]]$diff
+## t = -3, df = 116, p-value = 0.007
+## alternative hypothesis: true mean is not equal to 0
+## 95 percent confidence interval:
+##  -1.67 -0.27
+## sample estimates:
+## mean of x 
+##     -0.97 
+## 
+## 
+## [[10]]
+## 
+##  One Sample t-test
+## 
+## data:  spd[[x]]$diff
+## t = -0.3, df = 108, p-value = 0.8
+## alternative hypothesis: true mean is not equal to 0
+## 95 percent confidence interval:
+##  -0.24  0.19
+## sample estimates:
+## mean of x 
+##    -0.028 
+## 
+## 
+## [[11]]
+## 
+##  One Sample t-test
+## 
+## data:  spd[[x]]$diff
+## t = -3, df = 6, p-value = 0.04
+## alternative hypothesis: true mean is not equal to 0
+## 95 percent confidence interval:
+##  -0.934 -0.038
+## sample estimates:
+## mean of x 
+##     -0.49 
+## 
+## 
+## [[12]]
+## 
+##  One Sample t-test
+## 
+## data:  spd[[x]]$diff
+## t = 4, df = 712, p-value = 0.0001
+## alternative hypothesis: true mean is not equal to 0
+## 95 percent confidence interval:
+##  0.46 1.40
+## sample estimates:
+## mean of x 
+##      0.93 
+## 
+## 
+## [[13]]
+## 
+##  One Sample t-test
+## 
+## data:  spd[[x]]$diff
+## t = -7, df = 494, p-value = 0.000000000007
+## alternative hypothesis: true mean is not equal to 0
+## 95 percent confidence interval:
+##  -0.22 -0.12
+## sample estimates:
+## mean of x 
+##     -0.17 
+## 
+## 
+## [[14]]
+## 
+##  One Sample t-test
+## 
+## data:  spd[[x]]$diff
+## t = -3, df = 935, p-value = 0.003
+## alternative hypothesis: true mean is not equal to 0
+## 95 percent confidence interval:
+##  -0.87 -0.18
+## sample estimates:
+## mean of x 
+##     -0.53 
+## 
+## 
+## [[15]]
+## 
+##  One Sample t-test
+## 
+## data:  spd[[x]]$diff
+## t = -0.4, df = 64, p-value = 0.7
+## alternative hypothesis: true mean is not equal to 0
+## 95 percent confidence interval:
+##  -0.84  0.57
+## sample estimates:
+## mean of x 
+##     -0.14 
+## 
+## 
+## [[16]]
+## 
+##  One Sample t-test
+## 
+## data:  spd[[x]]$diff
+## t = 2, df = 75, p-value = 0.1
+## alternative hypothesis: true mean is not equal to 0
+## 95 percent confidence interval:
+##  -0.38  3.10
+## sample estimates:
+## mean of x 
+##       1.4</code></pre>
+<div class="sourceCode" id="cb141"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb141-1"><a href="#cb141-1" aria-hidden="true" tabindex="-1"></a><span class="co"># creating a table with the 16 p-values if we carry out each test one by one</span></span>
+<span id="cb141-2"><a href="#cb141-2" aria-hidden="true" tabindex="-1"></a>table_out <span class="ot">&lt;-</span> pd <span class="sc">|&gt;</span></span>
+<span id="cb141-3"><a href="#cb141-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(retailer) <span class="sc">|&gt;</span></span>
+<span id="cb141-4"><a href="#cb141-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_modify</span>(<span class="sc">~</span> <span class="fu">tidy</span>(<span class="fu">t.test</span>(.x<span class="sc">$</span>diff)))</span>
+<span id="cb141-5"><a href="#cb141-5" aria-hidden="true" tabindex="-1"></a>table_out <span class="ot">&lt;-</span> table_out <span class="sc">|&gt;</span></span>
+<span id="cb141-6"><a href="#cb141-6" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(retailer, estimate, p.value)</span>
+<span id="cb141-7"><a href="#cb141-7" aria-hidden="true" tabindex="-1"></a>table_out</span></code></pre></div>
+<pre><code>## # A tibble: 16 × 3
+## # Groups:   retailer [16]
+##    retailer estimate  p.value
+##       &lt;int&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+##  1       44   3.74   3.81e- 2
+##  2       45  -1.22   2.20e- 1
+##  3       46  -0.429  5.80e-30
+##  4       47   0.0516 9.72e- 2
+##  5       48   0.421  3.39e- 2
+##  6       49   2.41   2.02e- 1
+##  7       50   0.606  1.02e- 1
+##  8       51   0.284  6.16e- 2
+##  9       53  -0.970  7.31e- 3
+## 10       54  -0.0275 8.00e- 1
+## 11       56  -0.486  3.79e- 2
+## 12       57   0.932  1.01e- 4
+## 13       58  -0.169  6.83e-12
+## 14       59  -0.528  2.60e- 3
+## 15       60  -0.138  6.97e- 1
+## 16       62   1.36   1.23e- 1</code></pre>
+</div>
 </div>
 <div id="linting" class="section level1" number="8">
 <h1><span class="header-section-number">8</span> Linting</h1>
 <p>The code in this RMarkdown is linted with the <a href="https://github.com/jimhester/lintr">lintr package</a>, which is based on the <a href="http://style.tidyverse.org/">tidyverse style guide</a>.</p>
-<div class="sourceCode" id="cb139"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb139-1"><a href="#cb139-1" aria-hidden="true" tabindex="-1"></a><span class="co"># lintr::lint(&quot;main.Rmd&quot;, linters =</span></span>
-<span id="cb139-2"><a href="#cb139-2" aria-hidden="true" tabindex="-1"></a><span class="co">#               lintr::with_defaults(</span></span>
-<span id="cb139-3"><a href="#cb139-3" aria-hidden="true" tabindex="-1"></a><span class="co">#                 commented_code_linter = NULL,</span></span>
-<span id="cb139-4"><a href="#cb139-4" aria-hidden="true" tabindex="-1"></a><span class="co">#                 trailing_whitespace_linter = NULL</span></span>
-<span id="cb139-5"><a href="#cb139-5" aria-hidden="true" tabindex="-1"></a><span class="co">#                 )</span></span>
-<span id="cb139-6"><a href="#cb139-6" aria-hidden="true" tabindex="-1"></a><span class="co">#             )</span></span>
-<span id="cb139-7"><a href="#cb139-7" aria-hidden="true" tabindex="-1"></a><span class="co"># if you have additional scripts and want them to be linted too, add them here</span></span>
-<span id="cb139-8"><a href="#cb139-8" aria-hidden="true" tabindex="-1"></a><span class="co"># lintr::lint(&quot;scripts/my_script.R&quot;)</span></span></code></pre></div>
+<div class="sourceCode" id="cb143"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb143-1"><a href="#cb143-1" aria-hidden="true" tabindex="-1"></a><span class="co"># lintr::lint(&quot;main.Rmd&quot;, linters =</span></span>
+<span id="cb143-2"><a href="#cb143-2" aria-hidden="true" tabindex="-1"></a><span class="co">#               lintr::with_defaults(</span></span>
+<span id="cb143-3"><a href="#cb143-3" aria-hidden="true" tabindex="-1"></a><span class="co">#                 commented_code_linter = NULL,</span></span>
+<span id="cb143-4"><a href="#cb143-4" aria-hidden="true" tabindex="-1"></a><span class="co">#                 trailing_whitespace_linter = NULL</span></span>
+<span id="cb143-5"><a href="#cb143-5" aria-hidden="true" tabindex="-1"></a><span class="co">#                 )</span></span>
+<span id="cb143-6"><a href="#cb143-6" aria-hidden="true" tabindex="-1"></a><span class="co">#             )</span></span>
+<span id="cb143-7"><a href="#cb143-7" aria-hidden="true" tabindex="-1"></a><span class="co"># if you have additional scripts and want them to be linted too, add them here</span></span>
+<span id="cb143-8"><a href="#cb143-8" aria-hidden="true" tabindex="-1"></a><span class="co"># lintr::lint(&quot;scripts/my_script.R&quot;)</span></span></code></pre></div>
 </div>
 
 
