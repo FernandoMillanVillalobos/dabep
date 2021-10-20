@@ -1555,6 +1555,51 @@ We arrive at the same conclusion with the help of the p-value (0.7). That means 
 
 Finally, we would arrive to a similar conclusion if we just looked at the 95% CI of the average price difference. The CI contains zero. So the value of the true average price difference may very well be zero. It also shows that it's very unlikely that the true average price is more than +0.30 or -0.19 cents.
 
+
+## Steps of Hypothesis Testing
+
+1. Define the __statistic__ that corresponds to your question.
+2. Initial assessment of __external validity__: general pattern of interest, general pattern represented by the data.
+3. State the __null__ and __alternative__ hypotheses.
+4. Choose a __critical value__. In practice, that should correspond to 5%.
+5. Calculate the __test statistic__ from the data.
+6. Make a decision based on the calculated test statistic and the critical value.
+7. Alternative to steps 4-6, calculate the __p-value__ and make a decision by comparing it to a pre-set level of significance that in practice will usually be 5%.
+8. Interpret the results.
+9. Final assessment of external validity. Would the same decision be fine for the population, or general pattern, of interest
+
+## One-Sided Alternatives
+
+Testing a null hypothesis against a one-sided alternative means having an inequality in the null hypothesis instead of an equality: $H_0:s_{true}  \le 0$ against $H_1:s_{true} \gt 0$ and $H_0:s_{true}  \ge 0$ against $H_1:s_{true} \lt 0$. Having only one of the inequalities leads to focusing on one side of the test statistic only. Focusing on deviations in one direction means that we care about one half of the sampling distribution of the test statistic.
+
+The probability of a false positive is smaller in this case. We don't reject the null if the test statistic falls in the region that is specified in the null hypothesis. Thus, we make a false positive decision only half of the time. The probability of a false positive decision here is therefore half of the probability of a false positive in the corresponding two-sided test.
+
+Therefore, the practical way to test a one-sided hypothesis is a two-step procedure.
+
+1. If the test statistic is in the region of the null, don't reject the null. This happens if $\hat s$ is in the region of null ($H_0:s_{true}  \le 0$ against $H_1:s_{true} \gt 0$).
+2. If the test statistic is in the region of the alternative, calculate the p-value of the null hypothesis of the equality and divide the p-value by two.
+
+## Testing Multiple Hypotheses
+
+The simplest decision rule to testing a hypothesis consists of calculating a p-value from the data and comparing it to a pre-set level of significance. So far, we have considered cases with one pair of hypotheses: a null and an alternative. Often, though, data analysis involves testing multiple null hypotheses, each with and an alternative. Testing multiple hypotheses is an issue because the statistical theory of testing, and the corresponding tools, have been developed for testing a single null hypothesis. In multiple hypothesis testing, the question is the likelihood that any one of the true nulls will be wrongfully rejected.
+
+```{r testing-multiple-hypotheses}
+# CASE STUDY: Comparing Online and Offline Prices: Testing the Difference
+# calculating multiple hypotheses for each retailer in the data (16)
+spd <- split(pd, pd$retailer, drop = FALSE)
+out <- vector("list", length = length(spd))
+out <- lapply(1:length(spd), function(x) out[[x]] <- t.test(spd[[x]]$diff, mu = 0))
+out
+
+# creating a table with the 16 p-values if we carry out each test one by one
+table_out <- pd |>
+  group_by(retailer) |>
+  group_modify(~ tidy(t.test(.x$diff)))
+table_out <- table_out |>
+  dplyr::select(retailer, estimate, p.value)
+table_out
+```
+
 # Linting
 
 The code in this RMarkdown is linted with the [lintr package](https://github.com/jimhester/lintr), which is based on the [tidyverse style guide](http://style.tidyverse.org/).
