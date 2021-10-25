@@ -147,7 +147,7 @@ library(tidyverse, warn.conflicts = FALSE) # ggplot2, dplyr, tidyr, readr, purrr
 library(scales) # scales for ggplot2
 library(jsonlite) # json
 library(lintr) # code linting
-
+library(sf)
 library(rmarkdown)
 library(data.table)
 library(cowplot) # theme
@@ -158,7 +158,7 @@ library(ggrepel) # text labels
 library(skimr)
 library(haven)
 library(Hmisc)
-
+library(desc)
 library(reshape2)
 library(pastecs)
 library(patchwork)
@@ -167,11 +167,10 @@ library(reticulate)
 library(binsreg)
 library(boot)
 library(modelsummary)
+library(viridis)
 library(janitor)", # names
   file = "manifest.R"
 )
-# library(sf)
-# library(desc)
 ```
 
 ## Install packages
@@ -1599,6 +1598,205 @@ table_out <- table_out |>
   dplyr::select(retailer, estimate, p.value)
 table_out
 ```
+# CHAPTER 07: Simple Regression
+
+We focus in the most important pattern of association: __mean dependence__. Mean-dependence tells whether, and to what extent, the mean of _y_ is different when the value of _x_ is different. __Regression__ is the most widely used method of comparison in data analysis. __Simple regression analysis__ uncovers mean-dependence between two variables. It amounts to comparing average values of one variable, called the dependent variable _(y)_ for observations that are different in the other variable, the explanatory variable _(x)_. Discovering patterns of association between variables if often a good starting point if we are interested in __causal analysis__: uncovering the effect of one variable on another variable; or, we may be interested in __predictive analysis__: what to expect of a variable for various values of another variable.
+
+__Regression analysis__ is a method that uncovers the average value of a variable _y_ for different values of variable _x_. Regression is a model for the __conditional mean__. The model for the conditional mean gives a rule that takes _x_ values and tells what the mean value of _y_ is. $$\tag{The expected value of y conditional on x is given by the function f} E[y|x] = f(x) \\ y^E = f(x)$$ $$\tag{The actual value of y is equal to its expected value plus a deviation from it}  y = f(x) + e$$.
+
+Regression analysis find patterns in the data by comparing observations with different values of the _x_ variable __(explanatory variable, right-hand-side variable or regressor)__ to see whether and how the mean value of the _y_ variable __(explained variable, left-hand-side variable or regressand)__ differs across them. Thus, we need data with variation in _x_. Usually, the more variation in _x_, the better because it allows for more comparisons.
+
+## Non-parametric Regression
+
+__Non-parametric regressions__ describe the $y^E = f(x)$ pattern without imposing a specific __functional form__ of _f_. They let the data dictate what that function looks like. In contrast, __parametric regressions__ impose a functional form on _f_. Parametric examples include linear functions: $f(x) = a + bx$.
+
+When _x_ has few values and there are many observations in the data, the best and most intuitive non-parametric regression shows average _y_ for each and every value of _x_. With many _x_ values and few observations for some, or all, _x_ values, there are two ways to do non-parametric regression analysis: __bins__ and __smoothing__. The first and more straightforward way is based on grouped values of _x_: bins. Bins are disjoint categories (no overlap) that span the entire range of _x_ (no gaps). It can be visualized through __bin scatters__. Bin scatters show the average value of _y_ that corresponds to each bin created from the values of _x_, in an _x-y_ coordinate system. An alternative visualization of the same non-parametric regression is the __step function__. A step function shows average _y_ over the entire range of the bins.
+
+The second method produces a "smooth" graph that is both continuous and has no kink at any point. Non-parametric regression of this kind shows conditional means, smoothed to get a better image. One of the various methods available is called __lowess__. __Lowess__ (locally weighted scatterplot smoothing) is one of the most widely non-parametric regression methods that produces a smooth graph. A lowess may be thought of as a smooth curve fit around a bin scatter. Similarly to density plots, we have to set the bandwidth for smoothing, a choice that affects the results. Smooth non-parametric regression methods do not produce numbers that would summarize $y^E = f(x)$ pattern. Instead, they provide a value of $y^E$ for each of the particular _x_ values that occur in the data, as well as for all _x_ values in-between. We interpret these graphs in qualitative, not quantitative ways. If we want to visualize a regression, it is a good practice to plot it __together with the scatterplot__.
+
+```{r simple-regression}
+# CASE STUDY: Finding a Good Deal among Hotels with Simple Regression
+hotels <- read_csv("input/hotels-vienna.csv")
+
+# Apply filters:  3-4 stars, Vienna actual, without extreme value
+hotels <- hotels |>
+  filter(accommodation_type == "Hotel") |>
+  filter(city_actual == "Vienna") |>
+  filter(stars >= 3 & stars <= 4) |>
+  filter(!is.na(stars)) |>
+  filter(price <= 600)
+
+# summary statistics on price 
+descr_price <- hotels |>
+  dplyr::select(price) |>
+  dplyr::summarize(
+    mean = mean(price),
+    sd = sd(price),
+    min = min(price),
+    max = max(price),
+    p50 = quantile(price, .50),
+    p95 = quantile(price, .95),
+    n = length(price)
+  )
+descr_price
+
+# summary statistics on distance 
+descr_dist <- hotels |>
+  dplyr::select(distance) |> 
+  dplyr::summarize(mean=mean(distance),
+                  sd=sd(distance),
+                  min=min(distance),
+                  max=max(distance),
+                  p50=quantile(distance,.50),
+                  p95=quantile(distance,.95),
+                  n=length(distance))
+descr_dist
+
+# REGRESSION 1: CLOSE VS FAR REGRESSION WITH BINARY DISTANCE
+hotels <- hotels |> mutate(dist2 = as.numeric(distance >= 2))
+dist2 <- hotels |>
+  group_by(dist2) |>
+  dplyr::summarize(Eprice_cat2 = mean(price))
+hotels <- left_join(hotels, dist2)
+hotels <- hotels |> mutate(dist2 = recode(dist2, `0` = "Close", `1` = "Far"))
+
+hotels |>
+  group_by(dist2) |>
+  dplyr::summarize(
+    mean_dist = mean(distance),
+    sd_dist = sd(distance),
+    min_dist = min(distance),
+    max_dist = max(distance),
+    mean_price = mean(price),
+    sd_price = sd(price),
+    min_price = min(price),
+    max_price = max(price),
+    N = n()
+  )
+
+# plotting the regression analysis (2 bins) with bin scatters
+p1 <- ggplot(data = hotels) +
+  geom_point(aes(x = dist2, y = Eprice_cat2),
+    size = 2.5, color = color[1], fill = color[1], shape = 21, alpha = 0.4, na.rm = T
+  ) +
+  geom_text(aes(x = dist2, y = Eprice_cat2, label = round(Eprice_cat2)), hjust = -0.8, vjust = 0, color = "black", size = 3) +
+  scale_y_continuous(expand = c(0.01, 0.01), limits = c(0, 400), breaks = seq(0, 400, by = 50)) +
+  expand_limits(y = 0.01) +
+  scale_x_discrete() +
+  labs(x = "Distance to city center (categories)", y = "Average price (US dollars)") +
+  theme_bg()
+p1
+
+# plotting the box plot
+p2 <- ggplot(data = hotels, aes(x = dist2, y = price)) +
+  stat_boxplot(aes(group = dist2), geom = "errorbar", width = 0.25, color = viridis(2, begin = 0.3, end = 0.7), size = 0.5, na.rm = T) +
+  geom_boxplot(aes(group = dist2), color = viridis(2, begin = 0.3, end = 0.7), fill = viridis(2, begin = 0.3, end = 0.7), size = 0.5, width = 0.5, alpha = 0.3, na.rm = T, outlier.shape = NA) +
+  geom_jitter(aes(color = dist2), position = position_jitter(0.1), size = 0.5, show.legend = F, na.rm = T) +
+  labs(x = "Distance to city center (categories)", y = "Price (US dollars)") +
+  scale_y_continuous(expand = c(0.01, 0.01), limits = c(0, 400), breaks = seq(0, 400, 50)) +
+  expand_limits(y = 0.01) +
+  scale_color_viridis(discrete = TRUE, option = "D", begin = 0.3, end = 0.7) +
+  theme_bg()
+p2
+
+p1 | p2  
+
+### REGRESSION 2: 4 DISTANCE CATEGORIES
+hotels <- hotels |> mutate(dist4 = 0.5 + 1 * as.numeric(hotels$distance >= 1) + 1 * as.numeric(hotels$distance >= 2) + 2.5 * as.numeric(hotels$distance >= 3))
+dist4 <- hotels |>
+  group_by(dist4) |>
+  dplyr::summarize(Eprice_cat4 = mean(price))
+hotels <- left_join(hotels, dist4)
+
+hotels |>
+  group_by(dist4) |>
+  dplyr::summarize(
+    mean_dist = mean(distance),
+    sd_dist = sd(distance),
+    min_dist = min(distance),
+    max_dist = max(distance),
+    mean_price = mean(price),
+    sd_price = sd(price),
+    min_price = min(price),
+    max_price = max(price),
+    N = n()
+  )
+
+# plotting the regression analysis (4 bins) with bin scatters
+p3 <- ggplot(data = hotels) +
+  geom_point(aes(x = dist4, y = Eprice_cat4),
+    size = 2.5, color = color[1], fill = color[1], shape = 21, alpha = 0.4, na.rm = T
+  ) +
+  geom_text(aes(x = dist4, y = Eprice_cat4, label = round(Eprice_cat4)), hjust = -0.6, vjust = 0, color = "black", size = 3) +
+  expand_limits(x = 0.01, y = 0.01) +
+  coord_cartesian(xlim = c(0, 7), ylim = c(0, 400)) +
+  scale_y_continuous(expand = c(0.01, 0.01), limits = c(0, 400), breaks = seq(0, 400, by = 50)) +
+  scale_x_continuous(expand = c(0.01, 0.01), limits = c(0, 7), breaks = c(0, 1, 2, 3, 4, 5, 6, 7)) +
+  labs(x = "Distance to city center (miles)", y = "Price (US dollars)") +
+  theme_bg()
+p3
+
+p1 | p3
+
+# scatterplot of the whole data set (207 observations)
+p4 <- ggplot(data = hotels) +
+  geom_point(aes(x = distance, y = price), color = color[1], size = 2, shape = 16, alpha = 0.5, show.legend = F, na.rm = TRUE) +
+  expand_limits(x = 0.01, y = 0.01) +
+  scale_x_continuous(expand = c(0.01, 0.01), limits = c(0, 7), breaks = seq(0, 7, by = 1)) +
+  scale_y_continuous(expand = c(0.01, 0.01), limits = c(0, 400), breaks = seq(0, 400, by = 50)) +
+  labs(x = "Distance to city center (miles)", y = "Price (US dollars)") +
+  theme_bg()
+p4
+
+# non-parametric regression with a step function (4 bins)
+hotels <- hotels |> mutate(dist4_s = 1 * as.numeric(hotels$distance >= 1) + 1 * as.numeric(hotels$distance >= 2) + 1 * as.numeric(hotels$distance >= 3) + 1 * as.numeric(hotels$distance >= 4) + 1 * as.numeric(hotels$distance >= 5) + 1 * as.numeric(hotels$distance >= 6))
+hotels$xend <- c(hotels$dist4_s + 1)
+hotels$yend <- c(hotels$Eprice_cat4)
+
+# plotting non-parametric regression including scatterplot (4 bins)
+p5 <- p4 +
+  geom_segment(data = hotels, aes(x = dist4_s, y = yend, xend = xend, yend = yend), color = color[2], size = 0.7, na.rm = TRUE)
+p5
+
+### REGRESSION 3: 7 DISTANCE CATEGORIES
+hotels <- hotels |> mutate(dist7_new = 0.5 + 1 * as.numeric(hotels$distance >= 1) + 1 * as.numeric(hotels$distance >= 2) + 1 * as.numeric(hotels$distance >= 3) + 1 * as.numeric(hotels$distance >= 4) + 1 * as.numeric(hotels$distance >= 5) + 1 * as.numeric(hotels$distance >= 6))
+dist7_new <- hotels |>
+  group_by(dist7_new) |>
+  dplyr::summarize(Eprice_cat7_new = mean(price))
+hotels <- left_join(hotels, dist7_new)
+hotels |>
+  group_by(dist7_new) |>
+  dplyr::summarize(
+    mean_dist = mean(distance),
+    sd_dist = sd(distance),
+    min_dist = min(distance),
+    max_dist = max(distance),
+    mean_dist = mean(price),
+    sd_dist = sd(price),
+    min_dist = min(price),
+    max_dist = max(price),
+    N = n()
+  )
+
+# non-parametric regression with a step function (7 bins)
+hotels <- hotels %>% mutate(dist7_s = 1 * as.numeric(hotels$distance >= 1) + 1 * as.numeric(hotels$distance >= 2) + 1 * as.numeric(hotels$distance >= 3) + 1 * as.numeric(hotels$distance >= 4) + 1 * as.numeric(hotels$distance >= 5) + 1 * as.numeric(hotels$distance >= 6))
+hotels$xend <- c(hotels$dist7_s + 1)
+hotels$yend <- c(hotels$Eprice_cat7_new)
+
+# plotting non-parametric regression including scatterplot (7 bins)
+p6 <- p4 +
+  geom_segment(data = hotels, aes(x = dist7_s, y = yend, xend = xend, yend = yend), color = color[2], size = 0.7, na.rm = TRUE)
+p6
+
+p5 | p6
+
+# LOWESS NONPARAMETRIC REGRESSION
+p7 <- p4 +
+  geom_smooth(aes(x = distance, y = price), method = "loess", se = FALSE)
+p7
+```
+
+
 
 # Linting
 
