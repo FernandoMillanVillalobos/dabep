@@ -1602,7 +1602,11 @@ table_out
 
 We focus in the most important pattern of association: __mean dependence__. Mean-dependence tells whether, and to what extent, the mean of _y_ is different when the value of _x_ is different. __Regression__ is the most widely used method of comparison in data analysis. __Simple regression analysis__ uncovers mean-dependence between two variables. It amounts to comparing average values of one variable, called the dependent variable _(y)_ for observations that are different in the other variable, the explanatory variable _(x)_. Discovering patterns of association between variables if often a good starting point if we are interested in __causal analysis__: uncovering the effect of one variable on another variable; or, we may be interested in __predictive analysis__: what to expect of a variable for various values of another variable.
 
-__Regression analysis__ is a method that uncovers the average value of a variable _y_ for different values of variable _x_. Regression is a model for the __conditional mean__. The model for the conditional mean gives a rule that takes _x_ values and tells what the mean value of _y_ is. $$\tag{The expected value of y conditional on x is given by the function f} E[y|x] = f(x) \\ y^E = f(x)$$ $$\tag{The actual value of y is equal to its expected value plus a deviation from it}  y = f(x) + e$$.
+__Regression analysis__ is a method that uncovers the average value of a variable _y_ for different values of variable _x_. Regression is a model for the __conditional mean__. The model for the conditional mean gives a rule that takes _x_ values and tells what the mean value of _y_ is. $$E[y|x] = f(x) *  \\ y^E = f(x) \\ y = f(x) + e **$$
+
+\* The expected value of _y_ conditional on _x_ is given by the function _f_.
+
+\** The actual value of _y_ is equal to its expected value plus a deviation from it. 
 
 Regression analysis find patterns in the data by comparing observations with different values of the _x_ variable __(explanatory variable, right-hand-side variable or regressor)__ to see whether and how the mean value of the _y_ variable __(explained variable, left-hand-side variable or regressand)__ differs across them. Thus, we need data with variation in _x_. Usually, the more variation in _x_, the better because it allows for more comparisons.
 
