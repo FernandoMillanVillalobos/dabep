@@ -1800,7 +1800,25 @@ p7 <- p4 +
 p7
 ```
 
+## Linear Regression
 
+Simple linear regression imposes linearity of the function _f_ in $y^E = f(x)$. Linear functions have two parameters called coefficients: the __intercept coefficient__ and the __slope coefficient__. $$y^E = a + \beta x$$ To be more precise, linear regression imposes linearity in terms of its coefficients. We can have any function, including any nonlinear function, of the original variables themselves, and it will be still a linear regression as long as it consists of an intercept plus a slope coefficient, whether that slope multiplies _x_ or any function of _x_.
+
+Linear regression is a line through the _x-y_ scatterplot. This line is the best-fitting line one can draw through the scatterplot. It is the best fit in the sense that it is the line that is closest to all points of the scatterplot.
+
+One way to look at the linearity in linear regression is as an assumption: by doing linear regression analysis we assume that the regression function is linear in its coefficients. Another way to look at linearity is to treat it as an approximation. Whatever the form of the $y^E = f(x)$ relationship, the $y^E = a + \beta x$ regression fits a line through it. By fitting a line, linear regression approximates the average slope of the $y^E = f(x)$ curve: it is the difference in average _y_ that corresponds to different values of _x_, averaged across the entire range of _x_ in the data.
+
+## Linear Regression: Coefficient Interpretation
+
+What makes linear regression very powerful is that its coefficients have a clear interpretation based on the idea of comparing conditional means. The __intercept__ ($a$) is the average value of _y_ when _x_ is zero. The __slope__ ($\beta$) shows the expected difference in _y_ corresponding to a one unit difference in _x_. _y_ is higher, on average, by $\beta$ for observations with a one-unit higher value of _x_. 
+
+## Linear Regression with a Binary Explanatory Variable
+
+An important special case of linear regression is when _x_ is a binary variable, zero or one. In this case, the simple linear regression has the following interpretations:
+
+* $a$ (intercept): the average value of _y_ is $a$ when _x_ is zero.
+* $\beta$ (slope): average _y_ is $\beta$ higher among observations with $x = 1$ than among observations with $x = 0$.
+* When $x = 1$, the average value of _y_ is $a + \beta$.  
 
 # Linting
 
