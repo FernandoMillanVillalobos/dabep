@@ -1973,6 +1973,34 @@ p3 <- ggplot(data = hotels, aes(x = distance, y = price)) +
   theme(axis.title.y = element_text(size = 9))
 p3
 ```
+## Goodness of Fit, R-Squared
+
+An important property of regression is how well it fits the data, called __goodness of fit__. The __fit of a regression__ captures how these predicted values compare to the actual values. The most commonly used measure of the fit of a regression is the __R-squared ($R^2$)__. R-squared captures how close the predicted _y_ values are to the actual values. It does so by measuring how much of the variation in _y_ is captured by the regression, and how much is left for residual variation: $$R² = \frac{Var[\hat{y}]}{Var[y]} = 1 - \frac{Var[e]}{Var[y]}$$ This is based on the decomposition of the overall variation in the dependent variable into variation in predicted values (variation "explained by the regression") and the remaining, residual variation (variation  "not explained by the regression"): $$Var[y] = Var[\hat{y}] + Var[e]$$
+
+R-squared (or $R²$) can be defined for both parametric and non-parametric regressions. The value of R-squared is always between zero and one. R-squared is one if the regression fits the data perfectly. In this case each and every data point is equal to its predicted value from regression, and all residuals are zero. The other polar case is an R-squared of zero. In this case all of the $\hat{y}$ values are equal to the overall average value $\bar{y}$ in the data regardless of the value of the explanatory variable _x_. This corresponds to a slope of zero: the regression line is completely flat.
+
+The fit of a regression depends on two factors:
+
+1. how well the particular version of the regression captures the actual function _f_ in $y^E = f(x)$;
+2. how far actual values of _y_ are spread around what would be predicted using the actual function _f_.
+
+A non-parametric regression almost always gives a better fit than a linear regression. When our goal is prediction, R-squared may help in choosing between different versions of regression for the same data. Besides giving information on the fit of a particular regression R-squared is used to compare alternative regressions that use different _x_ variables to predict the same _y_ variable. Comparing two regressions, the one with a higher R-squared does a better job at predicting _y_ in the data.
+
+## Correlation and Linear Regression
+
+Linear regression is closely related to correlation. The correlation coefficient measures the degree of association between two variables. It is a normalized version of the covariance, dividing it by the standard deviations of the two variables. The OLS formula for the slope estimate of the linear regression is also a normalized version of the covariance, only here it is divided by the variance of the _x_ variable.
+
+Despite their differences, the __covariance__, the __correlation coefficient__, and the __slope of a linear regression__ capture similar information: the degree of association between the two variables. The relationship between the slope coefficient of the simple linear regression and the correlation coefficient helps to explain the name for the method itself: regression. It is so called due to the Sir Francis Galton's study on the association between the height of parents _(x)_ and the height of their children _(y)_: events further away from the mean tend to be followed by events closer to the mean.
+
+## Regression and Causation
+
+The slope of a simple regression describes the same association as correlation, but it does not show the effect of the explanatory variable on the dependent variable. Regression is a method of comparison: it compares observations that are different in _x_ and shows corresponding average differences in _y_. It is a way to find patterns of association by comparisons. Regression analysis cannot in general uncover the effect of _x_ on _y_ in observational data because there variation in _x_ is not controlled. In contrast, the same regression analysis can uncover the effect of _x_ on _y_ in experimental data where variation in _x_ is controlled.
+
+In any case, when the slope of the regression is not zero in our data, one of three things may be true:
+
+1. _x_ causes _y_. If this is the single one thing behind the slope, it means that we can expect _y_ to increase by $\beta$ units if we were to increase _x_ by one unit.
+2. _y_ causes _x_. If this is the single one thing behind the slope, it means that me can expect _x_ to increase if we were to increase _y_.
+3. A third variable causes both _x_ and _y_ (or many such variables do). If this is the single one thing behind the slope it means that we cannot expect _y_ to increase if we were to increase _x_.
 
 # Linting
 
