@@ -2021,7 +2021,31 @@ In any case, when the slope of the regression is not zero in our data, one of th
 
 # CHAPTER 08: Complicated Patterns and Messy Data
 
+Whether the shape of a regression is linear or nonlinear matters if:
 
+* our goal is prediction;
+* our goal is uncovering the patterns of association and we want to uncover more than the average association;
+* all we want to uncover is the average association, but that average is badly estimated due to nonlinearities (most often due to strong skewness or extreme values).
+
+Some frequent nonlinear patterns are better approximated by linear regressions if _y_ or _x_, or both, are transformed by taking __relative differences__, or __percentage differences__. In a time series, this transformation is possible because there is a previous observation that could serve as the natural base for comparison. But doing so is impossible in cross-sectional data where there is no previous observation that could serve as a natural base for comparison. Taking the __natural logarithm__ of a variable is often a good solution in such cases. When transformed by taking the natural logarithm, differences in variable values approximate relative differences.
+
+The natural logarithm of a variable _x_ is denoted as $ln(x)$ or ln _x_. When we want to differentiate variables that are not in logs, we often say that they are in __level__, or levels. Examining log differences works because differences in natural logs approximate percentage differences. Log differences are approximations of percentage differences that work well for small differences of 30% or less. For larger positive differences, the log difference is smaller (for example, a log difference of +1.0 corresponds to a +170% difference). For larger negative differences, the log difference is larger in absolute value (for example, a log difference of -1.0 corresponds to a -63% difference).
+
+Measuring differences in relative terms is often a good choice with many variables analyzed in business, economics, and policy: 
+
+ * Relative comparisons are free from measures of the variables that are often different across time and space and are arbitrary to begin with.
+ * Differences in relative terms are likely to be more stable across time and space than absolute differences.
+ * Many economic decisions are based on differences in relative terms.
+ 
+The distribution of variables in relative terms, including after taking the log, is often less skewed than distributions of levels. The distribution of many important economic variables is skewed with a long right tail and are reasonably well approximated by a __log normal distribution__. The natural log of such variables are close to normally distributed with all of the associated nice statistical properties such as symmetry and low frequency of extreme values. Having variables with such nice properties is a good thing in linear regression analysis: the slope in a linear regression is an approximation of the average slope of an underlying conditional expectation that may be nonlinear. Thus, the closer the distribution of variables is to normal, the better the approximation.
+
+Taking relative differences or logs keeps some aspects of the variables the same but changes other aspects. 
+
+1. Relative differences and log differences between two observations are not affected by the original units of measurement. This is true for units of measurements that are multiples of each other, such as currencies or distance. The same is not true for additive transformations. For this reason, it makes most sense to take relative differences or logs of ratio variables only.
+2. When we take the log of a variable, we do a monotonic transformation: the ordering of observations in terms of a transformed variable is the same as their ordering in terms of the original variable.
+3. Taking relative, or log differences is tricky with averages. In general, the average of many relative, or log differences, is not equal to the relative, or log difference, of average variables. Technically this is because the log is a nonlinear function.
+
+One of the main reason to take relative differences, or logs, of variables is to consider differences in relative terms that are free from arbitrary units of measurement and represent how decision makers think about them. The statistical reason is to transform variables that are skewed with a long right tail to variables that are more symmetric and closer to being normally distributed.
 
 # Linting
 
