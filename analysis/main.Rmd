@@ -36,9 +36,9 @@ knitr::opts_chunk$set(
 user_name <- "fernandomillanvillalobos" # your Git username (only needed if
 # you want to deploy to GH pages)
 project_name <- "dabep" # adapt!
-package_date <- "2021-06-01" # date of the CRAN snapshot that
+package_date <- "2021-11-01" # date of the CRAN snapshot that
 # the checkpoint package uses
-r_version <- "4.1.1" # R-Version to use
+r_version <- "4.1.2" # R-Version to use
 options(Ncpus = 4) # use 4 cores for parallelized installation of packages
 if (r_version != paste0(version$major, ".", version$minor)) {
   stop("ERROR: specified R version does not match currently used.")
@@ -136,7 +136,23 @@ if (Sys.getenv("RSTUDIO") == "1") {
 
 ## Define packages
 
-```{r, echo=TRUE, message=FALSE, warning=FALSE}
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+# from https://mran.revolutionanalytics.com/web/packages/\
+# checkpoint/vignettes/using-checkpoint-with-knitr.html
+# if you don't need a package, remove it from here (commenting not sufficient)
+# tidyverse: see https://blog.rstudio.org/2016/09/15/tidyverse-1-0-0/
+# cat("
+# library(rstudioapi)
+# library(tidyverse, warn.conflicts = FALSE) # ggplot2, dplyr, tidyr, readr, purrr, tibble, magrittr, readxl
+# library(scales) # scales for ggplot2
+# library(jsonlite) # json
+# library(desc)
+# library(lintr)",
+#   file = "manifest.R"
+# )
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
 # from https://mran.revolutionanalytics.com/web/packages/\
 # checkpoint/vignettes/using-checkpoint-with-knitr.html
 # if you don't need a package, remove it from here (commenting not sufficient)
@@ -154,7 +170,7 @@ library(cowplot) # theme
 library(extrafont)
 library(waldo) # compare
 library(psych) # some useful funs
-library(ggrepel) # text labels
+library(ggrepel)
 library(skimr)
 library(haven)
 library(Hmisc)
@@ -172,6 +188,7 @@ library(grid)
 library(janitor)", # names
   file = "manifest.R"
 )
+# library(sf)
 ```
 
 ## Install packages
@@ -2001,6 +2018,10 @@ In any case, when the slope of the regression is not zero in our data, one of th
 1. _x_ causes _y_. If this is the single one thing behind the slope, it means that we can expect _y_ to increase by $\beta$ units if we were to increase _x_ by one unit.
 2. _y_ causes _x_. If this is the single one thing behind the slope, it means that me can expect _x_ to increase if we were to increase _y_.
 3. A third variable causes both _x_ and _y_ (or many such variables do). If this is the single one thing behind the slope it means that we cannot expect _y_ to increase if we were to increase _x_.
+
+# CHAPTER 08: Complicated Patterns and Messy Data
+
+
 
 # Linting
 
