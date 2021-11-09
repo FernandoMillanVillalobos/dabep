@@ -2027,6 +2027,8 @@ Whether the shape of a regression is linear or nonlinear matters if:
 * our goal is uncovering the patterns of association and we want to uncover more than the average association;
 * all we want to uncover is the average association, but that average is badly estimated due to nonlinearities (most often due to strong skewness or extreme values).
 
+## Taking Relative Differences or Logs
+
 Some frequent nonlinear patterns are better approximated by linear regressions if _y_ or _x_, or both, are transformed by taking __relative differences__, or __percentage differences__. In a time series, this transformation is possible because there is a previous observation that could serve as the natural base for comparison. But doing so is impossible in cross-sectional data where there is no previous observation that could serve as a natural base for comparison. Taking the __natural logarithm__ of a variable is often a good solution in such cases. When transformed by taking the natural logarithm, differences in variable values approximate relative differences.
 
 The natural logarithm of a variable _x_ is denoted as $ln(x)$ or ln _x_. When we want to differentiate variables that are not in logs, we often say that they are in __level__, or levels. Examining log differences works because differences in natural logs approximate percentage differences. Log differences are approximations of percentage differences that work well for small differences of 30% or less. For larger positive differences, the log difference is smaller (for example, a log difference of +1.0 corresponds to a +170% difference). For larger negative differences, the log difference is larger in absolute value (for example, a log difference of -1.0 corresponds to a -63% difference).
@@ -2046,6 +2048,16 @@ Taking relative differences or logs keeps some aspects of the variables the same
 3. Taking relative, or log differences is tricky with averages. In general, the average of many relative, or log differences, is not equal to the relative, or log difference, of average variables. Technically this is because the log is a nonlinear function.
 
 One of the main reason to take relative differences, or logs, of variables is to consider differences in relative terms that are free from arbitrary units of measurement and represent how decision makers think about them. The statistical reason is to transform variables that are skewed with a long right tail to variables that are more symmetric and closer to being normally distributed.
+
+## Log Transformations and Non-positive Values
+
+An important constraint on taking relative differences or logs is that they are possible for positive values only. And that can be a problem, because we may encounter variables that we want to analyze in relative terms yet they have non-positive values:
+
+1. The reason for zero, or negative, values may matter. In particular, the variable may have only positive values in principle, but the data has zeros because of rounding. When zeros are the results of rounding, it's good practice to replace those apparently zero values with what may be the average non-rounded value for them, such as 0.25 (if values below 0.5 are rounded to zero and the distribution of the variable is likely close to uniform in that region).
+2. The magnitude of the problem matters. If only 1 percent of the observations have zero value, we may simply drop them from the data. If, in contrast, 60 percent, or 90 percent, have zero value, whether a value is zero or positive is important information. So much so that we may convert this variable into a binary one.
+3. The available options are different for the _y_ and _x_ variables in the regression whether the non-positive values are all zero, or there are negative values, too:
+  * The _x_ variable is positive for most observations and zero for a non-negligible minority of the observations. In this case it is a good practice to create a binary variable denoting whether $x = 0$. Then we make ln $x = 0$ when $x = 0$, and enter both the binary variable and this modified ln $x$ in the regression. The interpretation of the first coefficient is the usual one with ln $x = 0$ versus $x \gt 0$, and the interpretation of the second coefficient is the usual one with ln $x$, given that $x \gt 0$.
+  * We can follow the same logic with an _x_ variable that is positive for some observations but zero or negative for a non-negligible minority of the observations. Here we can define a binary variable denoting whether $x \leq 0$. Alternatively, we can create two binary variables, one for whether $x = 0$, and one for whether $x \lt 0$. Either way, we replace ln $x = 0$ for all $x \le 0$ observations, enter the binary variable, or variables, together with ln $x$, and interpret their coefficients accordingly.
 
 # Linting
 
