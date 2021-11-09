@@ -356,7 +356,7 @@ div.tocify {
 
 <div id="notes" class="section level1" number="1">
 <h1><span class="header-section-number">1</span> Notes</h1>
-<p>This report was generated on 2021-11-08 08:53:49. R version: 4.1.2 on x86_64-pc-linux-gnu. For this report, CRAN packages as of 2021-11-01 were used.</p>
+<p>This report was generated on 2021-11-09 14:48:55. R version: 4.1.2 on x86_64-pc-linux-gnu. For this report, CRAN packages as of 2021-11-01 were used.</p>
 <p>…</p>
 <div id="r-script-data" class="section level2" number="1.1">
 <h2><span class="header-section-number">1.1</span> R-Script &amp; Data</h2>
@@ -3065,6 +3065,44 @@ diff
 </div>
 <div id="chapter-08-complicated-patterns-and-messy-data" class="section level1" number="9">
 <h1><span class="header-section-number">9</span> CHAPTER 08: Complicated Patterns and Messy Data</h1>
+<p>Whether the shape of a regression is linear or nonlinear matters if:</p>
+<ul>
+<li>our goal is prediction;</li>
+<li>our goal is uncovering the patterns of association and we want to uncover more than the average association;</li>
+<li>all we want to uncover is the average association, but that average is badly estimated due to nonlinearities (most often due to strong skewness or extreme values).</li>
+</ul>
+<div id="taking-relative-differences-or-logs" class="section level2" number="9.1">
+<h2><span class="header-section-number">9.1</span> Taking Relative Differences or Logs</h2>
+<p>Some frequent nonlinear patterns are better approximated by linear regressions if <em>y</em> or <em>x</em>, or both, are transformed by taking <strong>relative differences</strong>, or <strong>percentage differences</strong>. In a time series, this transformation is possible because there is a previous observation that could serve as the natural base for comparison. But doing so is impossible in cross-sectional data where there is no previous observation that could serve as a natural base for comparison. Taking the <strong>natural logarithm</strong> of a variable is often a good solution in such cases. When transformed by taking the natural logarithm, differences in variable values approximate relative differences.</p>
+<p>The natural logarithm of a variable <em>x</em> is denoted as <span class="math inline">\(ln(x)\)</span> or ln <em>x</em>. When we want to differentiate variables that are not in logs, we often say that they are in <strong>level</strong>, or levels. Examining log differences works because differences in natural logs approximate percentage differences. Log differences are approximations of percentage differences that work well for small differences of 30% or less. For larger positive differences, the log difference is smaller (for example, a log difference of +1.0 corresponds to a +170% difference). For larger negative differences, the log difference is larger in absolute value (for example, a log difference of -1.0 corresponds to a -63% difference).</p>
+<p>Measuring differences in relative terms is often a good choice with many variables analyzed in business, economics, and policy:</p>
+<ul>
+<li>Relative comparisons are free from measures of the variables that are often different across time and space and are arbitrary to begin with.</li>
+<li>Differences in relative terms are likely to be more stable across time and space than absolute differences.</li>
+<li>Many economic decisions are based on differences in relative terms.</li>
+</ul>
+<p>The distribution of variables in relative terms, including after taking the log, is often less skewed than distributions of levels. The distribution of many important economic variables is skewed with a long right tail and are reasonably well approximated by a <strong>log normal distribution</strong>. The natural log of such variables are close to normally distributed with all of the associated nice statistical properties such as symmetry and low frequency of extreme values. Having variables with such nice properties is a good thing in linear regression analysis: the slope in a linear regression is an approximation of the average slope of an underlying conditional expectation that may be nonlinear. Thus, the closer the distribution of variables is to normal, the better the approximation.</p>
+<p>Taking relative differences or logs keeps some aspects of the variables the same but changes other aspects.</p>
+<ol style="list-style-type: decimal">
+<li>Relative differences and log differences between two observations are not affected by the original units of measurement. This is true for units of measurements that are multiples of each other, such as currencies or distance. The same is not true for additive transformations. For this reason, it makes most sense to take relative differences or logs of ratio variables only.</li>
+<li>When we take the log of a variable, we do a monotonic transformation: the ordering of observations in terms of a transformed variable is the same as their ordering in terms of the original variable.</li>
+<li>Taking relative, or log differences is tricky with averages. In general, the average of many relative, or log differences, is not equal to the relative, or log difference, of average variables. Technically this is because the log is a nonlinear function.</li>
+</ol>
+<p>One of the main reason to take relative differences, or logs, of variables is to consider differences in relative terms that are free from arbitrary units of measurement and represent how decision makers think about them. The statistical reason is to transform variables that are skewed with a long right tail to variables that are more symmetric and closer to being normally distributed.</p>
+</div>
+<div id="log-transformations-and-non-positive-values" class="section level2" number="9.2">
+<h2><span class="header-section-number">9.2</span> Log Transformations and Non-positive Values</h2>
+<p>An important constraint on taking relative differences or logs is that they are possible for positive values only. And that can be a problem, because we may encounter variables that we want to analyze in relative terms yet they have non-positive values:</p>
+<ol style="list-style-type: decimal">
+<li>The reason for zero, or negative, values may matter. In particular, the variable may have only positive values in principle, but the data has zeros because of rounding. When zeros are the results of rounding, it’s good practice to replace those apparently zero values with what may be the average non-rounded value for them, such as 0.25 (if values below 0.5 are rounded to zero and the distribution of the variable is likely close to uniform in that region).</li>
+<li>The magnitude of the problem matters. If only 1 percent of the observations have zero value, we may simply drop them from the data. If, in contrast, 60 percent, or 90 percent, have zero value, whether a value is zero or positive is important information. So much so that we may convert this variable into a binary one.</li>
+<li>The available options are different for the <em>y</em> and <em>x</em> variables in the regression whether the non-positive values are all zero, or there are negative values, too:</li>
+</ol>
+<ul>
+<li>The <em>x</em> variable is positive for most observations and zero for a non-negligible minority of the observations. In this case it is a good practice to create a binary variable denoting whether <span class="math inline">\(x = 0\)</span>. Then we make ln <span class="math inline">\(x = 0\)</span> when <span class="math inline">\(x = 0\)</span>, and enter both the binary variable and this modified ln <span class="math inline">\(x\)</span> in the regression. The interpretation of the first coefficient is the usual one with ln <span class="math inline">\(x = 0\)</span> versus <span class="math inline">\(x \gt 0\)</span>, and the interpretation of the second coefficient is the usual one with ln <span class="math inline">\(x\)</span>, given that <span class="math inline">\(x \gt 0\)</span>.</li>
+<li>We can follow the same logic with an <em>x</em> variable that is positive for some observations but zero or negative for a non-negligible minority of the observations. Here we can define a binary variable denoting whether <span class="math inline">\(x \leq 0\)</span>. Alternatively, we can create two binary variables, one for whether <span class="math inline">\(x = 0\)</span>, and one for whether <span class="math inline">\(x \lt 0\)</span>. Either way, we replace ln <span class="math inline">\(x = 0\)</span> for all <span class="math inline">\(x \le 0\)</span> observations, enter the binary variable, or variables, together with ln <span class="math inline">\(x\)</span>, and interpret their coefficients accordingly.</li>
+</ul>
+</div>
 </div>
 <div id="linting" class="section level1" number="10">
 <h1><span class="header-section-number">10</span> Linting</h1>
