@@ -2065,7 +2065,7 @@ When _y_, or _x_, are log transformations, the interpretation of the regression 
 
 * log-log regression: $(ln y^E) = a + \beta\ ln\ x$. $\beta$: _y_ is $\beta$ percent higher on average for observations having one percent higher _x_.
 * log-level regression: $(ln y^E) = a + \beta\ x$. $\beta$: _y_ is $\beta$ x 100 percent higher on average for observations having one unit higher _x_.
-* level-log regression: $y^E = a + \beta\ \ ln\ x $. $\beta$: _y_ is $\beta$/100 units higher on average for observations having one percent higher _x_.
+* level-log regression: $y^E = a + \beta\ \ ln\ x$. $\beta$: _y_ is $\beta$/100 units higher on average for observations having one percent higher _x_.
 
 ```{r regression-with-logs}
 # CASE STUDY: Finding a Good Deal among Hotels with Nonlinear Function
