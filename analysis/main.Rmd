@@ -2058,6 +2058,234 @@ An important constraint on taking relative differences or logs is that they are 
 3. The available options are different for the _y_ and _x_ variables in the regression whether the non-positive values are all zero, or there are negative values, too:
   * The _x_ variable is positive for most observations and zero for a non-negligible minority of the observations. In this case it is a good practice to create a binary variable denoting whether $x = 0$. Then we make ln $x = 0$ when $x = 0$, and enter both the binary variable and this modified ln $x$ in the regression. The interpretation of the first coefficient is the usual one with ln $x = 0$ versus $x \gt 0$, and the interpretation of the second coefficient is the usual one with ln $x$, given that $x \gt 0$.
   * We can follow the same logic with an _x_ variable that is positive for some observations but zero or negative for a non-negligible minority of the observations. Here we can define a binary variable denoting whether $x \leq 0$. Alternatively, we can create two binary variables, one for whether $x = 0$, and one for whether $x \lt 0$. Either way, we replace ln $x = 0$ for all $x \le 0$ observations, enter the binary variable, or variables, together with ln $x$, and interpret their coefficients accordingly.
+  
+## Interpreting Log Values in a Regression
+
+When _y_, or _x_, are log transformations, the interpretation of the regression coefficients isn't straightforward. There are three possible simple regressions with log variables: both _y_ and _x_ are in log, only _y_ is in log, only _x_ is in log:
+
+* log-log regression: $(ln y^E) = a + \beta\ ln\ x$. $\beta$: _y_ is $\beta$ percent higher on average for observations having one percent higher _x_.
+* log-level regression: $(ln y^E) = a + \beta\ x$. $\beta$: _y_ is $\beta$ x 100 percent higher on average for observations having one unit higher _x_.
+* level-log regression: $y^E = a + \beta\ \ ln\ x $. $\beta$: _y_ is $\beta$/100 units higher on average for observations having one percent higher _x_.
+
+```{r regression-with-logs}
+# CASE STUDY: Finding a Good Deal among Hotels with Nonlinear Function
+# calculating log price
+hotels$lnprice <- log(hotels$price)
+
+# creating new distance variable with all values less than 0.05 normalized to 0.05
+hotels$distance2 <- hotels$distance
+hotels$distance2[hotels$distance2 < 0.05] <- 0.05
+
+# creating log distance
+hotels$lndistance <- log(hotels$distance2)
+
+# describe price and ln price
+summary(hotels$price)
+summary(hotels$lnprice)
+
+# running linear regressions on non-log/log variables
+reg1 <- lm(price ~ distance, data = hotels)
+summary(reg1)
+reg2 <- lm(price ~ lndistance, data = hotels)
+summary(reg2)
+reg3 <- lm(lnprice ~ distance, data = hotels)
+summary(reg3)
+reg4 <- lm(lnprice ~ lndistance, data = hotels)
+summary(reg4)
+
+# plotting LEVEL-LEVEL LINEAR REGRESSION
+p1 <- ggplot(data = hotels, aes(x = distance, y = price)) +
+  geom_point_da() +
+  geom_smooth_da(method = "lm") +
+  expand_limits(x = 0.01, y = 0.01) +
+  scale_x_continuous(expand = c(0.01, 0.01), limits = c(0, 7), breaks = seq(0, 7, by = 1)) +
+  scale_y_continuous(expand = c(0.01, 0.01), limits = c(0, 400), breaks = seq(0, 400, by = 50)) +
+  labs(x = "Distance to city center (miles)", y = "Price (US dollars)") +
+  theme_bg()
+p1
+
+# plotting LOG-LEVEL LINEAR REGRESSION (scatterplot more symmetrically distributed around the regression line)
+p2 <- ggplot(data = hotels, aes(x = distance, y = lnprice)) +
+  geom_point_da() +
+  geom_smooth_da(method = "lm") +
+  expand_limits(x = 0.01, y = 0.01) +
+  scale_x_continuous(expand = c(0.01, 0.01), limits = c(0, 7), breaks = seq(0, 7, by = 1)) +
+  scale_y_continuous(expand = c(0.01, 0.01), limits = c(3.5, 6), breaks = seq(3.5, 6, by = 0.50)) +
+  labs(x = "Distance to city center (miles)", y = "ln(price, US dollars)") +
+  theme_bg()
+p2
+
+p1 | p2
+
+# plotting LEVEL-LOG LINEAR REGRESSION
+p3 <- ggplot(data = hotels, aes(x = lndistance, y = price)) +
+  geom_point_da() +
+  geom_smooth_da(method = "lm") +
+  expand_limits(x = 0.01, y = 0.01) +
+  scale_y_continuous(expand = c(0.01, 0.01), limits = c(0, 400), breaks = seq(0, 400, by = 50)) +
+  labs(x = "ln(distance to city center, miles)", y = "Price (US dollars)") +
+  theme_bg()
+p3
+
+# plotting LOG-LOG LINEAR REGRESSION
+p4 <- ggplot(data = hotels, aes(x = lndistance, y = lnprice)) +
+  geom_point_da() +
+  geom_smooth_da(method = "lm") +
+  expand_limits(x = 0.01, y = 0.01) +
+  scale_y_continuous(expand = c(0.01, 0.01), limits = c(3.5, 6), breaks = seq(3.5, 6, by = 0.50)) +
+  labs(x = "ln(distance to city center, miles)", y = "ln(price, US dollars)") +
+  theme_bg()
+p4
+
+p3 | p4  
+```
+## Other Transformations of Variables
+
+Sometimes we need transformations of _y_ and _x_ for the linear regression to make more sense and/or give a better approximation to the underlying nonlinear conditional expectation. It is typically useful to use __per capita measures__ rather than total measures of aggregate variables for cross-country comparisons. Per capita measures are the most frequent normalization of totals; they divide by population. Sometimes other variables are used to normalize totals, such as area, GDP, or labor force. All of these produce ratios, either in their own units or dividing different units. We can take the log of a ratio just like any other variable to express differences in relative terms.
+
+```{r per-capita-measures}
+# CASE STUDY: How is Life Expectancy Related to the Average Income of a Country?
+# load data
+xc <- read_csv("input/worldbank-lifeexpectancy.csv")
+
+# select year 
+xc <- xc |> filter(year == 2017)
+
+# GDP total, log
+xc <- xc |>
+  mutate(gdptot = gdppc * population) |>
+  mutate(lngdppc = log(gdppc)) |>
+  mutate(lngdptot = log(gdptot))
+
+xc |>
+  dplyr::select(lifeexp, gdppc, gdptot, lngdppc, lngdptot) |>
+  summary()
+
+# plotting the distribution of GDP per capita (level and log)
+# level
+p1 <- ggplot(
+  data = xc,
+  aes(x = gdppc, y = (..count..) / sum(..count..))
+) +
+  geom_histogram(
+    binwidth = 3, boundary = 0, closed = "left",
+    color = color.outline, fill = color[1], size = 0.25, alpha = 0.8, show.legend = F, na.rm = TRUE
+  ) +
+  labs(x = "GDP per capita (thousand US dollars)", y = "Percent") +
+  expand_limits(x = 0.01, y = 0.01) +
+  scale_x_continuous(expand = c(0.01, 0.01), limits = c(0, 120), breaks = seq(0, 120, by = 15)) +
+  scale_y_continuous(expand = c(0.0, 0.0), limits = c(0, 0.2), breaks = seq(0, 0.20, by = 0.04), labels = scales::percent_format(accuracy = 1)) +
+  theme_bg()
+p1
+
+# log
+p2 <- ggplot(
+  data = xc,
+  aes(x = lngdppc, y = (..count..) / sum(..count..))
+) +
+  geom_histogram(
+    binwidth = 0.2, boundary = 0, closed = "left",
+    color = color.outline, fill = color[1], size = 0.25, alpha = 0.8, show.legend = F, na.rm = TRUE
+  ) +
+  labs(x = "ln(GDP per capita, thousand US dollars)", y = "Percent") +
+  scale_x_continuous(expand = c(0.01, 0.01), limits = c(0, 5), breaks = seq(0, 5, by = 1)) +
+  scale_y_continuous(expand = c(0.0, 0.0), limits = c(0, 0.1), breaks = seq(0, 0.10, by = 0.02), labels = scales::percent_format(accuracy = 1)) +
+  theme_bg()
+p2
+
+p1 | p2
+
+# running linear regression
+reg1 <- lm(lifeexp ~ gdppc, data = xc)
+summary(reg1)
+
+# plotting LEVEL-LEVEL REGRESSION
+p3 <- ggplot(
+  data = xc,
+  aes(x = gdppc, y = lifeexp)
+) +
+  geom_point_da() +
+  geom_smooth_da(method = "lm") +
+  coord_cartesian(xlim = c(0, 120), ylim = c(50, 100)) +
+  expand_limits(x = 0.01, y = 0.01) +
+  scale_x_continuous(expand = c(0.01, 0.01), limits = c(0, 120), breaks = seq(0, 120, by = 20)) +
+  scale_y_continuous(expand = c(0.01, 0.01), breaks = seq(50, 100, by = 5)) +
+  labs(x = "GDP per capita (thousand US dollars)", y = "Life expectancy  (years)") +
+  theme_bg()
+p3
+
+# running linear regression log per capita
+reg2 <- lm(lifeexp ~ lngdppc, data = xc)
+summary(reg2)
+
+# plotting life expectancy and GDP log per capita
+p4 <- ggplot(
+  data = xc,
+  aes(x = lngdppc, y = lifeexp)
+) +
+  geom_point_da() +
+  geom_smooth_da(method = "lm") +
+  coord_cartesian(xlim = c(-0.5, 4.8), ylim = c(50, 85)) +
+  scale_x_continuous(breaks = seq(-0.5, 4.5, by = 0.5)) +
+  scale_y_continuous(expand = c(0.01, 0.01), breaks = seq(50, 85, by = 5)) +
+  labs(x = "ln(GDP per capita, thousand US dollars) ", y = "Life expectancy  (years)") +
+  theme_bg()
+p4
+
+# plotting life expectancy and GDP log per capita (in scale)
+p5 <- ggplot(
+  data = xc,
+  aes(x = gdppc, y = lifeexp)
+) +
+  geom_point_da() +
+  geom_smooth_da(method = "lm") +
+  coord_cartesian(ylim = c(50, 85)) +
+  scale_x_continuous(trans = log_trans(), breaks = c(0.1, 0.5, 1, 2, 5, 10, 20, 50, 100)) +
+  scale_y_continuous(expand = c(0.01, 0.01), breaks = seq(50, 85, by = 5)) +
+  labs(x = "GDP per capita, thousand US dollars (ln scale) ", y = "Life expectancy  (years)") +
+  theme_bg()
+p5
+
+p4 | p5
+
+# running linear regression total GDP
+reg3 <- lm(lifeexp ~ gdptot, data=xc)
+summary(reg3)
+
+# plotting LEVEL-LEVEL REGRESSION (total GDP)
+p6 <- ggplot(
+  data = xc,
+  aes(x = gdptot, y = lifeexp)
+) +
+  geom_point_da() +
+  geom_smooth_da(method = "lm") +
+  coord_cartesian(xlim = c(0, 24000), ylim = c(50, 85)) +
+  expand_limits(x = 0.01, y = 0.01) +
+  scale_x_continuous(expand = c(0.01, 0.01), limits = c(0, 24000), breaks = seq(0, 24000, by = 4000)) +
+  scale_y_continuous(expand = c(0.01, 0.01), limits = c(50, 85), breaks = seq(50, 85, by = 5)) +
+  labs(x = "Total GDP  (billion US dollars)", y = "Life expectancy  (years)") +
+  theme_bg()
+p6
+
+# running linear regression log total GDP
+reg4 <- lm(lifeexp ~ lngdptot, data = xc)
+summary(reg4)
+
+# plotting LEVEL-LOG REGRESSION (total GDP)
+p7 <- ggplot(
+  data = xc,
+  aes(x = gdptot, y = lifeexp)
+) +
+  geom_point_da() +
+  geom_smooth_da(method = "lm") +
+  coord_cartesian(ylim = c(50, 85)) +
+  scale_x_continuous(trans = log_trans(), breaks = c(1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 10000)) +
+  scale_y_continuous(expand = c(0.01, 0.01), breaks = c(50, 55, 60, 65, 70, 75, 80, 85)) +
+  labs(x = "Total GDP (in ln scale))", y = "Life expectancy  (years)") +
+  theme_bg()
+p7
+```
+
 
 # Linting
 
