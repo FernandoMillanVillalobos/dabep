@@ -185,6 +185,8 @@ library(boot)
 library(modelsummary)
 library(viridis)
 library(grid)
+library(lspline)
+library(lmtest)
 library(janitor)", # names
   file = "manifest.R"
 )
@@ -2249,7 +2251,7 @@ p5
 p4 | p5
 
 # running linear regression total GDP
-reg3 <- lm(lifeexp ~ gdptot, data=xc)
+reg3 <- lm(lifeexp ~ gdptot, data = xc)
 summary(reg3)
 
 # plotting LEVEL-LEVEL REGRESSION (total GDP)
@@ -2286,7 +2288,120 @@ p7 <- ggplot(
 p7
 ```
 
+## Regression with a Piecewise Linear Spine
 
+Data analysts use two main tools to approximate nonlinear patterns in the framework of linear regression besides transforming variables: __piecewise linear spines__ and __polynomials__. Both tools involve specifying a nonlinear functional form for _f_ in $y^E = f(x)$.
+
+A __piecewise linear spline__ allows the slope to differ for different sections (values) of the explanatory variable. It is a set of connected line segments instead of a single line with a single slope. The points at which the different line segments are connected are called knots. With two line segments we have one knot. With _m_ line segments we have $m - 1$ knots. Piecewise linear splines are not the same thing as separate linear regressions for different ranges of the explanatory variable. Both methods allow for a different slope for the different intervals of the explanatory variable. However, piecewise linear spline regressions produce connected line segments while separate regressions produce line segments that are typically not connected. 
+
+It is the job of the analyst to specify the number and the place of the knots of the piecewise linear spline. Then, the regression uncovers the slopes of the different line segments. Whether their slopes are different indeed is determined by the data.
+
+The formula for a piecewise linear spline regression with _m_ line segments (and $m - 1$ knots in-between) is $$y^E = a_1 + \beta_1x[if \ x \lt k_1] \ + (a_2 + \beta_2x)[if \ k_1\le x \le k_2] + \ ... \ + \ (a_m + \beta_mx)[if \ x\ge k_m-1]$$
+
+* $a_1$: Average _y_ when _x_ is zero.
+* $\beta_1$: Among observations with _x_ values less than $k_1$ _y_ is $\beta_1$ units higher, on average, for observations with one unit higher _x_ value.
+* $\beta_2$: Among observations with _x_ values between $k_1$ and $k_2$ _y_ is $\beta_2$ units higher, on average, for observations with one unit higher _x_ value.
+* $\beta_m$: Among observations with _x_ values greater than $k_m - 1$ _y_ is $\beta_m$ units higher, on average, for observations with one unit higher _x_ value.
+
+## Regression with Polynomial
+
+An alternative to piecewise linear splines are __polynomials__, having squared, cubed, or higher-order terms of the explanatory variable together with the linear term. The simplest and most widely used is the __quadratic function__ of _x_ that adds a square term: $$y^E = a + \beta_1x + \beta_2x^2$$
+
+Graphically, a quadratic function of _x_ replaces the regression line with a regression parabola. This parabola is either U-shaped (convex) or upside-down U-shaped (concave). A cubic functional form adds a third power term: $y^E = a + \beta_1x + \beta_2x^2 + \beta_3x^3$. Higher-order polynomials have more terms: 4th term, 5th term, and so on, allowing for even more complicated curves. The highest power in the polynomial is called its order. The order of the regression equation determines the number of potential points at which the curve may twist.
+
+Polynomials do not require the analyst to specify where the pattern may change. The only thing to decide is the order of the polynomial; where and how the curve would twist is determined by the data.
+
+## Choosing a Functional Form in a Regression
+
+We may want to ignore nonlinear patterns if all we care about is an average association and the linear regression gives a reasonable approximation to that average association. If that approximation is not good, we may want to transform variables, for example by taking logs, but only if the interpretation of the transformed variables makes more sense for the substantive question of the analysis. However, if our goal is prediction, identifying observations with large residuals, or leaning about how an association varies with _x_, nonlinear patterns are important. In such cases we should uncover the shape of the pattern. For that, we may have more options to uncover nonlinear patterns and incorporate them in linear regression analysis: transforming variables, piecewise linear spline, quadratic or other polynomials. Statistics can help choosing the best method. These are sometimes referred as methods for model selection.
+
+Besides these more systematic methods, we can often make good enough choices following a simple roadmap:
+
+* Start by deciding whether you care about nonlinear patterns.
+  + We usually are fine with a linear approximation if our focus is on an average association.
+  + Even then we often transform variables if that makes for a better interpretation of the results and makes linear regression better approximate the average association.
+  + In contrast, we usually want our regression to accommodate a nonlinear pattern if our focus is:
+    - on prediction;
+    - the analysis of residuals;
+    - about how an association varies with _x_.
+* If we want to uncover and include a potentially nonlinear pattern in the regression analysis we should:
+  + uncover the most important features of the pattern of association by examining a scatterplot or a graph produced by a non-parametric regression such as lowess;
+  + choose one or more ways to incorporate those features into a linear regression (transformed variables, piecewise linear spline, quadratic, and so on);
+  + compare the results across various regression approaches that appear to be good choices.
+  
+```{r linear-spline-and-polynomials}
+# CASE STUDY: How is Life Expectancy Related to the Average Income of a Country?
+
+# GPD PER CAPITA PIECEWISE LINEAR SPLINE
+# setting the knot (GDP per capita over 50 000 dollars)
+cutoff <- 50
+# creating the log
+cutoff_ln <- log(cutoff)
+
+# running piecewise linear spline regression on log
+reg5 <- lm(lifeexp ~ lspline::lspline(lngdppc, cutoff_ln), data = xc)
+summary(reg5)
+
+# running test of coefficients to check differences in slope for the different segments (5.5 vs -0.3)
+lmtest::coeftest(reg5)
+
+# calculating the residuals and creating a new variable
+xc$e3 <- resid(reg5)
+
+# calculating the predictions for the piecewise linear spline regression model 
+xc$sppred <- predict(lm(lifeexp ~ lspline::lspline(lngdppc, cutoff_ln), data = xc))
+
+# plotting a scatterplot with the piecewise linear spline regression model
+p1 <- ggplot(
+  data = xc,
+  aes(x = gdppc, y = lifeexp)
+) +
+  geom_point_da() +
+  geom_line(data = xc, aes(x = gdppc, y = sppred), color = color[2], size = 0.7) +
+  geom_vline(xintercept = cutoff, color = color[3], size = 0.5, linetype = "dotted") +
+  coord_cartesian(ylim = c(50, 85)) +
+  scale_x_continuous(trans = log_trans(), breaks = c(0.1, 0.5, 1, 2, 5, 10, 20, 50, 100)) +
+  scale_y_continuous(expand = c(0.01, 0.01), breaks = seq(50, 85, by = 5)) +
+  labs(x = "GDP per capita, thousand US dollars (ln scale) ", y = "Life expectancy  (years)") +
+  theme_bg()
+p1
+
+# QUADRATIC IN LEVEL-LOG REGRESSION
+# calculating the quadratic function
+xc$lngdppc_sq <- xc$lngdppc^2
+
+# running the polynomial (quadratic) linear regression
+reg6 <- lm(lifeexp ~ lngdppc + lngdppc_sq, data = xc)
+summary(reg6)
+
+# calculating the residuals and creating a new variable
+xc$e6 <- resid(reg6)
+
+# plotting a scatterplot with the polynomial (quadratic) nonlinear regression (in scale)
+p2 <- ggplot(data = xc, aes(x = gdppc, y = lifeexp)) +
+  geom_point_da() +
+  geom_smooth(method = "lm", formula = y ~ poly(x, 2), color = color[2], se = F, size = 0.7) +
+  coord_cartesian(ylim = c(50, 85)) +
+  scale_x_continuous(trans = log_trans(), breaks = c(0.1, 0.5, 1, 2, 5, 10, 20, 50, 100)) +
+  scale_y_continuous(expand = c(0.01, 0.01), breaks = seq(50, 85, by = 5)) +
+  labs(x = "GDP per capita, thousand US dollars (ln scale) ", y = "Life expectancy  (years)") +
+  theme_bg()
+p2
+
+# plotting a scatterplot with the polynomial (quadratic) nonlinear regression (ln units)
+p3 <- ggplot(data = xc, aes(x = lngdppc, y = lifeexp)) +
+  geom_point_da() +
+  geom_smooth(method = "lm", formula = y ~ poly(x, 2), color = color[2], se = F, size = 0.7) +
+  coord_cartesian(xlim = c(-1, 5), ylim = c(50, 90)) +
+  scale_x_continuous(breaks = seq(-1, 5, by = 0.5)) +
+  scale_y_continuous(breaks = seq(50, 90, by = 5)) +
+  labs(x = "ln(GDP per capita, thousand US dollars)", y = "Life expectancy  (years)") +
+  theme_bg()
+p3
+
+p1 | p2   
+```
+  
 # Linting
 
 The code in this RMarkdown is linted with the [lintr package](https://github.com/jimhester/lintr), which is based on the [tidyverse style guide](http://style.tidyverse.org/).
