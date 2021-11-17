@@ -2401,7 +2401,150 @@ p3
 
 p1 | p2   
 ```
-  
+
+## Extreme Values and Influential Observations
+
+Observations with extreme values that influence the results of regression analysis are called __influential observations__. Influential observations should be excluded from the data if they are due to errors, and they are best discarded at the exploratory phase of data analysis, even before they could show up as influential observations for regression analysis. If not due to errors, extreme values belong to the distribution of variables, and they should be kept even if they prove to be influential observations. An exception to this rule is when we decide that we don't want our analysis to say anything about certain kind of observations. That is usually fine if the decision is made based on the value of the _x_ variable.
+
+Observations with extreme values may be the most valuable observations. Taking the log of variables with long tails often takes care of extremely large values and thus influential observations. Similarly, expressing variables as ratios (GDP per capita, stock price per earnings, and so on) makes otherwise extreme values not extreme.
+
+## Measurement Error in Variables
+
+__Measurement error in variables__ may have severe consequences for regression analysis beyond producing extreme values and potentially influential observations. Such errors may arise due to technical or fundamental reasons. Technical sources of measurement error include reporting errors when the source of variable is a survey; recording errors in data recorded by humans as well as machines; and coding errors that are introduced during transforming raw data into analysis data, or data cleaning. Another technical source of measurement error is frequent in aggregate variables. Fundamental sources of error occur when the variable we would like to include in the analysis is not contained in the data; instead, we use another variable, or variables, that are related -> __latent variables__. Observed variables that we use in analyses instead of latent variables are called __proxy variables__. Proxy variables are erroneous measures of latent variables.
+
+Regardless of whether being due to fundamental or technical reasons, the effect of measurement errors depends on properties and magnitude of the errors, as well as whether they affect a dependent variable or an explanatory variable in a regression. Consider simple linear regressions $y^E = a + \beta x$ -> the question to consider are:
+
+1. whether the error leads to a bias in the slope coefficient;
+2. whether the error has other consequences, such as worse fit. Measurement error almost always results in worse fit of the regression.
+
+## Classical Measurement Error
+
+__Classical measurement error__ is an error that is zero on average and is independent of all other relevant variables, including the error-free variable. Classical measurement error, denoted by _e_, is added to the error-free value of a variable $y^*$ or $x^*$, resulting in an observed variable _y_ or _x_: $x = x^* + e$ and $y = y^* + e$. It is also called _noise_. Technical errors are often close to being classical errors.
+
+The importance of measurement error is captured by the __noise-to-signal ratio__: the ratio of error variance to what the variance of the error-free variable would be. When a variable _x_ includes classical measurement error so that $x = x^* + e$, the noise-to-signal ratio is $Var[e]/Var[x^x]$. When the noise-to-signal ratio is small, we may safely ignore the problem. This occurs when we are confident that coding errors are not important or when our data has an aggregate variable estimated from  very large samples. When the noise-to-signal ratio is substantial, we may better off assessing its consequences.
+
+Classical measurement error leads to worse fit of a regression when the error affects the dependent variable, but it does not affect the estimates of the regression coefficients. In contrast, when the explanatory variable is measured with classical measurement error, the regression coefficients are off. The effect of classical measurement error in the explanatory variable is called the __attenuation bias__. The slope of a simple linear regression is flatter if the explanatory variable is measured with classical error. The larger the noise-to-signal ratio, the larger the attenuation. A flatter line means smaller slope coefficient in absolute value. An additional consequence of this extra flatness is that the intercept is biased in the other direction.
+
+```{r measurement-error}
+# CASE STUDY: Regression and measurement erro in average customer ratings
+
+# TAKE LOG PRICE
+hotels$lnprice <- log(hotels$price)
+
+# define cutoffs
+k1 <- 100
+k2 <- 200
+
+# dividing data into three subsamples of roughly equal size
+# <100
+reg_me <- lm(lnprice ~ rating, data = subset(hotels, rating_count < k1))
+summary(reg_me)
+hotels$yhat <- predict(reg_me, hotels)
+
+# >=100 < 200
+reg_me2 <- lm(lnprice ~ rating, data = subset(hotels, rating_count >= k1 & rating_count < k2))
+summary(reg_me2)
+hotels$yhat2 <- predict(reg_me2, hotels)
+
+# >200
+reg_me3 <- lm(lnprice ~ rating, data = subset(hotels, rating_count >= k2))
+summary(reg_me3)
+hotels$yhat3 <- predict(reg_me3, hotels)
+
+# plotting log hotel price and average customer ratings: samples with noisiness
+p1 <- ggplot(data = hotels) +
+  geom_line(aes(x = rating, y = yhat, color = color[2]), size = 1) +
+  geom_line(aes(x = rating, y = yhat3, color = color[1]), size = 1) +
+  scale_color_manual(name = "", values = c(color[2], color[1]), labels = NULL, guide = "none") +
+  coord_cartesian(xlim = c(2, 5), ylim = c(3.5, 5)) +
+  expand_limits(x = 0.01, y = 0.01) +
+  scale_y_continuous(expand = c(0.01, 0.01)) +
+  scale_x_continuous(expand = c(0.01, 0.01), limits = c(2, 5), breaks = seq(2, 5, by = 0.5)) +
+  labs(x = "Average rating", y = "ln(Hotel price, US dollars)") +
+  theme_bg() +
+  annotate("text", x = 2.6, y = 4.4, label = "More noisy: # of ratings<100", size = 2, color = color[2]) +
+  annotate("text", x = 3.1, y = 3.6, label = "Less noisy: # of ratings>200", size = 2, color = color[1])
+p1
+```
+## Non-classical Measurement Error and General Advice
+
+Most errors in variables in real data are not classical. Errors due to misreporting or omission of elements can lead to biased estimates, too. The consequences of such errors for regression analysis are typically different from the consequences of classical error. Most variables in economics and social data are measured with noise. Thus, we should have a good idea about the magnitude of the problem. Noisy measures may be a problem if the noise-to-signal ratio is high. If the ratio is high, we need to have a good idea of the source of the error.
+
+## Using Weights in Regression Analysis
+
+Using __weights in regression analysis__ makes some observations count more than others in the analysis. We consider two cases for using weights: samples that represent populations, and aggregate data that represent smaller units.
+
+Datasets that are samples of a population often have weights to tell us the number of population items each observation represents. Such weights may compensate for unequal sampling probabilities, or they may be meant to compensate for some of the biases in the sample due to differences in coverage or response rates. In practice, weights that compensate for unequal sampling or unequal coverage rarely make a big difference in regression results.
+
+The second potential case for weighting arises with aggregate data. Observations in aggregate data may be units of different size. Analyzing aggregate data without weights treats each aggregate unit equally. Analyzing aggregate data with weights makes larger units more important. Without weights, a regression using aggregate data compares the aggregate units (e.g., countries). With weights, a regression using aggregated data is best interpreted as approximate comparisons of the smaller units that make up the aggregate ones (e.g., people in countries).
+
+```{r weights-in-regression}
+# CASE STUDY: How is Life Expectancy Related to the Average Income of a Country?
+
+# running linear regression (unweighted)
+reg7 <- lm(lifeexp ~ lngdppc, data = xc)
+summary(reg7)
+
+# running linear regression (weighted)
+reg8 <- lm(lifeexp ~ lngdppc, data = xc, weights = population)
+summary(reg8)
+
+# plotting life expectancy and GDP per capita (unweighted)
+p1 <- ggplot(data = xc, aes(x = gdppc, y = lifeexp)) +
+  geom_point_da(color = color[1], shape = 16, show.legend = F) +
+  geom_smooth(method = "lm", color = color[2], se = F, size = 0.7) +
+  scale_size(range = c(1, 15)) +
+  coord_cartesian(ylim = c(50, 85)) +
+  scale_x_continuous(trans = log_trans(), breaks = c(0.1, 0.5, 1, 2, 5, 10, 20, 50, 100)) +
+  scale_y_continuous(expand = c(0.01, 0.01), breaks = seq(50, 85, by = 5)) +
+  labs(x = "GDP per capita, thousand US dollars (ln scale) ", y = "Life expectancy  (years)") +
+  theme_bg()
+p1
+
+# plotting life expectancy and GDP per capita (weighted)
+p2 <- ggplot(data = xc, aes(x = gdppc, y = lifeexp)) +
+  geom_point(data = xc, aes(size = population), color = color[1], shape = 16, alpha = 0.6, show.legend = F) +
+  geom_smooth(aes(weight = population), method = "lm", color = color[2], se = F, size = 0.7) +
+  scale_size(range = c(1, 15)) +
+  coord_cartesian(ylim = c(50, 85)) +
+  scale_x_continuous(trans = log_trans(), breaks = c(0.1, 0.5, 1, 2, 5, 10, 20, 50, 100)) +
+  scale_y_continuous(expand = c(0.01, 0.01), breaks = seq(50, 85, by = 5)) +
+  labs(x = "GDP per capita, thousand US dollars (ln scale) ", y = "Life expectancy  (years)") +
+  theme_bg() +
+  annotate("text", x = 70, y = 80, label = "USA", size = 2) +
+  annotate("text", x = 10, y = 82, label = "China", size = 2) +
+  annotate("text", x = 7, y = 63, label = "India", size = 2)
+p2
+
+# plotting life expectancy and log GDP per capita (unweighted)
+p3 <- ggplot(data = xc, aes(x = lngdppc, y = lifeexp)) +
+  geom_point(data = xc, aes(size = population), color = color[1], shape = 16, alpha = 0.4, show.legend = F) +
+  geom_smooth(aes(weight = population), method = "lm", color = color[2], se = F, size = 0.7) +
+  scale_size(range = c(1, 15)) +
+  coord_cartesian(xlim = c(-1, 5), ylim = c(50, 90)) +
+  scale_x_continuous(breaks = seq(-1, 5, by = 0.5)) +
+  scale_y_continuous(breaks = seq(50, 90, by = 5)) +
+  labs(x = "ln(GDP per capita, thousand US dollars)", y = "Life expectancy  (years)", size = "Population") +
+  theme_bg()
+p3
+
+(p1 | p2) / (p2 | p3)
+
+# plotting differences in slope estimates (unweighted vs weighted)
+p4 <- ggplot(data = xc, aes(x = gdppc, y = lifeexp)) +
+  geom_smooth(method = "lm", color = color[2], se = F, size = 1) +
+  geom_smooth(aes(weight = population), method = "lm", color = color[3], se = F, size = 1) +
+  scale_size(range = c(1, 15)) +
+  coord_cartesian(ylim = c(50, 85)) +
+  scale_x_continuous(trans = log_trans(), breaks = c(0.1, 0.5, 1, 2, 5, 10, 20, 50, 100)) +
+  scale_y_continuous(expand = c(0.01, 0.01), breaks = seq(50, 85, by = 5)) +
+  labs(x = "GDP per capita, thousand US dollars (ln scale) ", y = "Life expectancy  (years)") +
+  theme_bg()
+p4
+```
+
+
+
 # Linting
 
 The code in this RMarkdown is linted with the [lintr package](https://github.com/jimhester/lintr), which is based on the [tidyverse style guide](http://style.tidyverse.org/).
