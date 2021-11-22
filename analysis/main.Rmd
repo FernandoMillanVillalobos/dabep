@@ -2543,6 +2543,7 @@ p4 <- ggplot(data = xc, aes(x = gdppc, y = lifeexp)) +
   theme_bg()
 p4
 ```
+
 # CHAPTER 09: Generalizing Results of a Regression
 
 ## Statistical Inference: CI and SE of Regression Coefficients
@@ -2661,7 +2662,6 @@ p1 <- ggplot(data = b_earnings_female, aes(`_b_female`)) +
   theme_bg()
 p1
 ```
-
 
 # Linting
 
