@@ -187,6 +187,7 @@ library(viridis)
 library(grid)
 library(lspline)
 library(lmtest)
+library(estimatr)
 library(janitor)", # names
   file = "manifest.R"
 )
@@ -2542,6 +2543,125 @@ p4 <- ggplot(data = xc, aes(x = gdppc, y = lifeexp)) +
   theme_bg()
 p4
 ```
+# CHAPTER 09: Generalizing Results of a Regression
+
+## Statistical Inference: CI and SE of Regression Coefficients
+
+With a simple linear regression $y^E = \beta + \beta x$, the estimate $\hat \beta$ shows the average difference in _y_ corresponding to one unit difference in _x_ in the data. The question of statistical inference is the true value of $\beta$. The __true value__ means its value in the population, or general pattern, represented by the data. The __confidence interval__ of the regression coefficient can answer that question. Estimating the 95% CI of the slope coefficient $\beta$ of a linear regression is similar to estimating a 95% CI of any other statistic. We take the value of the statistic estimated from the data and measure twice its standard error around it: $$CI(\hat \beta)_{95\%}  = [\hat \beta - 2SE(\hat \beta), \hat \beta + 2SE(\hat \beta)]$$
+
+The CI is narrower the smaller the SE, in which case we also say that the estimate of the regression coefficient is more precise. The standard error (SE) of the slope coefficient is conceptually the same as the SE of any statistic. It measures the spread of the values of the statistic across hypothetical repeated samples drawn from the same population, or general pattern, that our data represents. Just as with the standard error of an average, there are two ways to get the standard error of the slope of a linear regression: bootstrap and formula. Recall that the bootstrap is an intuitive method to get standard errors. It generates samples that represent the same population, or general pattern, as our original data and have the same size, too. Each bootstrap sample is a random sample from the original data with replacement. After estimating the slope coefficient $\hat \beta$ in each sample, we can look at its distribution. The standard deviation of this distribution is the bootstrap estimate of the standard error (SE) of the slope coefficient.
+
+There are various versions of the SE formula for the slope of the linear regression:
+
+1. The __simple SE formula__: It assumes that variables are independent across observations, which is likely true in most cross-sectional data. However, the formula assumes something else, too, called __homoskedasticity__: the assumption that the fit of the regression line is the same across the entire range of the _x_ variable. That may not be a good assumption in many cases. In general, though, the fit may differ at different values of _x_, in which case the spread of actual _y_ around the regression line is different for different values of _x_, a phenomenon called __heteroskedasticity__. $$SE(\hat \beta) = \frac{Std[e]}{\sqrt n Std[x]}$$
+The SE of the slope estimate is smaller the better the fit of the regression, the larger the sample, and the larger the spread of the x variable.
+2. The __robust SE formula__, also known as the “White” or “Huber” formula: This formula shares the same properties as the simple formula.
+
+The robust SE is correct both under heteroskedasticiy and homoskedasticity; the simple SE is correct only under homoskedasticity. (In small samples, the robust SE may be worse.) Therefore, in reasonably large samples, it is good practice to consider the robust SE as a default choice.
+
+```{r ci-and-ce-regressions-coefficients}
+# CASE STUDY – Estimating Gender and Age Differences in Earnings
+# importing data
+data_all <- read_csv("input/morg-2014-emp.csv",
+  col_types = cols(
+    .default = "?",
+    state = "c"
+  )
+)
+# (state must be as character: it's a mix of double and character in raw)
+janitor::tabyl(data_all$state)
+
+# filtering data
+# keep only two occupation types: Market research analysts and marketing specialists and Computer and Mathematical Occupations
+data_all <- data_all  |>  mutate(sample = ifelse(occ2012 == 0735, 1,
+  ifelse(data_all$occ2012 >= 1005 & data_all$occ2012 <= 1240, 2, 0)
+))
+
+#SET SAMPLE - Choose one of the occupations!
+#Market research analysts and marketing specialists -1
+#Computer and Mathematical Occupations-2
+data <- data_all |>
+  filter(sample == 1 | sample == 2) |>
+  filter(sample == 1)
+
+#gen female variable
+#gen wage variables
+data <- data |>
+  mutate(female = as.numeric(sex == 2)) |>
+  mutate(w = earnwke / uhours) |>
+  mutate(lnw = log(w)) |>
+  mutate(agesq = age^2)
+
+# creating a new ds
+# write_csv(data, "input/earnings_inference.csv")
+
+#DISTRIBUTION OF EARNINGS
+data |>
+  dplyr::select(earnwke, uhours, w) |>
+  summary()
+
+data |>
+  filter(w >= 1) |>
+  dplyr::select(earnwke, uhours, w) |>
+  summary()
+
+tabulate(data$female)
+table(data$occ2012, data$female)
+
+#linear regressions (female binary)
+# plain SE
+reg1 <- lm(lnw ~ female, data)
+summary(reg1)
+
+# with robust SE (female binary)
+reg2 <- lm_robust(lnw ~ female, data = data, se_type = "HC1")
+summary(reg2)
+
+# comparing the two models
+msummary(list(reg1, reg2),
+  fmt = "%.4f",
+  gof_omit = "DF|Deviance|Log.Lik.|F|R2 Adj.|AIC|BIC",
+  stars = c("*" = .05, "**" = .01)
+)
+
+# bootstrap
+set.seed(201711)
+
+# function to obtain regression weights
+bs <- function(formula, data, indices) {
+  d <- data[indices, ] # allows boot to select sample
+  fit <- lm(formula, data = d)
+  return(coef(fit))
+}
+
+# bootstrapping with 1000 replications
+results <- boot(
+  data = data, statistic = bs,
+  R = 1000, formula = lnw ~ female
+)
+
+b_earnings_female <- as.data.frame(results$t)
+colnames(b_earnings_female) <- c("_b_intercept", "_b_female")
+
+# plotting bootstrap distribution of the average female–male wage difference among market analysts
+p1 <- ggplot(data = b_earnings_female, aes(`_b_female`)) +
+  geom_histogram(aes(y = (..count..) / sum(..count..)),
+    binwidth = 0.025, center = 0.0125, closed = "left",
+    color = color.outline, fill = color[1],
+    size = 0.2, alpha = 0.8, show.legend = F, na.rm = TRUE
+  ) +
+  geom_segment(aes(x = -0.11, y = 0, xend = -0.11, yend = 0.2), colour = color[2], size = 1) +
+  annotate("text", x = -0.07, y = 0.18, label = "mean", size = 2.5) +
+  coord_cartesian(xlim = c(-0.3, 0.15), ylim = c(0, 0.2)) +
+  labs(x = "Slope coefficients from bootstrap samples", y = "Percent") +
+  scale_y_continuous(
+    expand = c(0.0, 0.0), limits = c(0, 0.2),
+    labels = scales::percent_format(accuracy = 1)
+  ) +
+  theme_bg()
+p1
+```
+
 
 # Linting
 
