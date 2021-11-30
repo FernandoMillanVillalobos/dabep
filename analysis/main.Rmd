@@ -188,6 +188,7 @@ library(grid)
 library(lspline)
 library(lmtest)
 library(estimatr)
+library(lsr)
 library(janitor)", # names
   file = "manifest.R"
 )
@@ -2609,7 +2610,7 @@ data |>
 tabulate(data$female)
 table(data$occ2012, data$female)
 
-#linear regressions (female binary)
+# linear regressions (female binary)
 # plain SE
 reg1 <- lm(lnw ~ female, data)
 summary(reg1)
@@ -2642,10 +2643,10 @@ results <- boot(
 )
 
 b_earnings_female <- as.data.frame(results$t)
-colnames(b_earnings_female) <- c("_b_intercept", "_b_female")
+colnames(b_earnings_female) <- c("b_intercept", "b_female")
 
 # plotting bootstrap distribution of the average female–male wage difference among market analysts
-p1 <- ggplot(data = b_earnings_female, aes(`_b_female`)) +
+p1 <- ggplot(data = b_earnings_female, aes(`b_female`)) +
   geom_histogram(aes(y = (..count..) / sum(..count..)),
     binwidth = 0.025, center = 0.0125, closed = "left",
     color = color.outline, fill = color[1],
@@ -2661,6 +2662,173 @@ p1 <- ggplot(data = b_earnings_female, aes(`_b_female`)) +
   ) +
   theme_bg()
 p1
+```
+## Intervals for Predicted Values
+
+One of the two main goals of regression analysis is prediction. The task is predicting the value of y for observations outside the data, for which only the value of x is known. To predict _y_ with the help of _x_ using linear regression, we need to know the coefficients $a$ and $\hat a$. This is the usual problem of generalizing statistics from a dataset. Using our data we can estimate the regression coefficients. Then, with their help, we can calculate the predicted value of _y_ for a particular observation with known _x_. How we can quantify and present the uncertainty corresponding to this specific predicted value, $\hat y_j$? The answer is producing an interval around it, with some level of confidence. There are two kinds of intervals to consider for predicted values. The first one is the confidence interval (CI) of the predicted value, also called the CI of the regression line. The second one is called the prediction interval for an observation, $y_j$.
+
+The predicted value $\hat y$ combines the estimated values $\hat a$ and $\hat \beta$. Thus the CI of the predicted value combines the CI for $\hat a$ and the CI for $\hat \beta$. It answers the question of where we can expect $y^E$ to lie if we know the value of _x_ and we have estimates of coefficients $\hat a$ and $\hat \beta$ from the data.
+
+The 95% CI of the predicted value is the value estimated from the sample plus and minus its standard error. We call this estimate the standard error of the predicted value _y_ and denote it by $SE(\hat y_j)$: $$95 \% \ CI (\hat{y_j}) = \hat{y_j} \ \pm \ 2SE(\hat{y_j})$$ $SE(\hat{y_j})$ can be estimated using bootstrap or an appropriate formula. As usual, we need the robust SE formula in practice.
+
+The SE of the predicted value for a particular observation is small if the SEs of the coefficient estimates are small and the particular observation has an _x_ value close to its average. The CI of the predicted value may be estimated for all kinds of regressions, not just for simple linear regression. The general idea is the same: it is an interval that tells us where to expect average y given the value of x in the population, or general pattern, represented by the data. The best way to use the CI of the predicted value is visualizing it, together with the regression line (or curve). The CI of the predicted value shows up as a band around the regression line, telling us where else the regression line could be besides where it is in the data, with 95% (or some other) chance, in the population, or general pattern represented by the data.
+
+The second kind of interval is the one around predicted values: the prediction interval for $y_j$. This interval answers a different question: where to expect the particular $y_j$ value if we know the corresponding $x_j$ value and the estimates of the regression coefficients. The difference is that the CI of the predicted value is about $\hat y_j$: the expected value if we know $y_j$, while the prediction interval is about $y_j$ itself: the actual value of $y_j$ if we know $x_j$.
+
+The prediction interval for $y_j$ starts from the CI for $\hat y_j$ and adds the extra uncertainty due to the fact that the actual $y_j$ will be somewhere around $\hat y_j$. To distinguish it from the confidence interval around $\hat y_j$, we denote the prediction interval for $y_j$ as $PI(\hat y_j)$ and the corresponding standard error as the standard prediction error, $SPE(\hat y_j)$. The formula for the 95% prediction interval is: $$95 \% \ PI (\hat{y_j}) = \hat{y_j} \ \pm \ 2SPE(\hat{y_j})$$ $SE(\hat{y_j})$
+
+```{r intervals-predicted-values}
+# CASE STUDY – Estimating Gender and Age Differences in Earnings
+# linear regression (age) and ci
+reg7_9 <- lm(lnw ~ age, data = data[data$sample == 1, ])
+pred_confidence <- bind_cols(data, as_tibble(predict(reg7_9, data, interval = "confidence", level = 0.95)))
+
+# add PI for a linear regression
+pred_interval <- bind_cols(data, as_tibble(predict(reg7, data, interval = "prediction", level = 0.95)))
+
+# plotting log hourly wage and age: regression line and confidence interval (CI)
+p1 <- ggplot(data = pred_confidence %>% filter(data$lnw < 4.4 & data$lnw > 2), aes(x = age, y = lnw)) +
+  geom_point(color = color[1], size = 1, shape = 16, alpha = 0.8, show.legend = F, na.rm = TRUE) +
+  geom_smooth(method = "lm", colour = color[2], se = F, size = 0.8, linetype = 1) +
+  geom_line(data = pred_confidence, aes(x = age, y = lwr), size = 0.5, linetype = 2, colour = color[2]) +
+  geom_line(data = pred_confidence, aes(x = age, y = upr), size = 0.5, linetype = 2, colour = color[2]) +
+  coord_cartesian(xlim = c(20, 65), ylim = c(1.5, 4.5)) +
+  scale_x_continuous(expand = c(0.01, 0.01), limits = c(20, 65), breaks = seq(20, 65, by = 5)) +
+  scale_y_continuous(expand = c(0.01, 0.01), limits = c(1.5, 4.5), breaks = seq(1.5, 4.5, by = 0.50)) +
+  labs(x = "Age (years)", y = "ln(earnings per hour)") +
+  scale_linetype_manual(
+    name = "", values = c(1, 1, 2),
+    labels = c("Lowess", "Confidence interval (95%)", "Confidence interval (95%)")
+  ) +
+  theme_bg()
+p1
+
+# plotting log hourly wage and age: regression line and prediction interval (PI)
+p2 <- ggplot(data = pred_interval %>% filter(lnw < 4.4 & lnw > 2), aes(x = age, y = lnw)) +
+  geom_point(color = color[1], size = 1, shape = 16, alpha = 0.8, show.legend = F, na.rm = TRUE) +
+  geom_smooth(method = "lm", colour = color[2], se = F, size = 0.8, linetype = 1) +
+  geom_line(data = pred_interval, aes(y = lwr), size = 0.5, linetype = 2, colour = color[2]) +
+  geom_line(data = pred_interval, aes(y = upr), size = 0.5, linetype = 2, colour = color[2]) +
+  coord_cartesian(xlim = c(20, 65), ylim = c(1.5, 4.5)) +
+  scale_x_continuous(expand = c(0.01, 0.01), limits = c(20, 65), breaks = seq(20, 65, by = 5)) +
+  scale_y_continuous(expand = c(0.01, 0.01), limits = c(1.5, 4.5), breaks = seq(1.5, 4.5, by = 0.50)) +
+  labs(x = "Age (years)", y = "ln(earnings per hour)") +
+  theme_bg()
+p2
+
+p1 | p2
+
+# linear regressions (age) with robust SE
+reg3_9 <- lm_robust(lnw ~ age, data = data, se_type = "HC1")
+summary(reg3_9)
+reg4_9 <- lm_robust(lnw ~ age + agesq, data = data, se_type = "HC1")
+summary(reg4_9 )
+reg5_9 <- lm_robust(lnw ~ lspline(age, c(30, 40)), data = data, se_type = "HC1")
+summary(reg5_9)
+#lowess
+reg6_9 <- loess(lnw ~ age, data, control = loess.control(surface = "direct"))
+summary(reg7_9)
+
+# adjusting naming to compare models
+gm <- c(
+  "R2" = "R-squared (%)",
+  "se_type" = "SE type"
+)
+
+cm <- c(
+  "R2" = "R-squared (%)",
+  "lspline(age, c(30, 40))2" = "spline(age, c(20,30))",
+  "(Intercept)" = "Constant"
+)
+
+# comparing models
+msummary(list(reg1, reg2, reg3, reg4, reg5),
+  fmt = "%.3f",
+  gof_omit = "DF|Deviance|Log.Lik.|F|R2 Adj.|AIC|BIC",
+  stars = c("*" = .05, "**" = .01),
+  coef_rename = cm,
+)
+
+# plotting hourly wage and age: lowess regression and scatterplot
+p3 <- ggplot(data = data, aes(x = age, y = lnw)) +
+  geom_point_da() +
+  geom_smooth_da(method = "loess") +
+  scale_x_continuous(expand = c(0.01, 0.01), limits = c(20, 65), breaks = seq(20, 65, by = 5)) +
+  scale_y_continuous(expand = c(0.01, 0.01), limits = c(1.5, 4.5), breaks = seq(1.5, 4.5, by = 0.50)) +
+  labs(x = "Age (years)", y = "ln(earnings per hour)") +
+  theme_bg()
+p3
+
+# calculating CIs for non-linear models
+# for polynomial
+z <- predict(reg4_9, data, se.fit = TRUE)
+data <- data  |>  mutate(
+  lnwpred_ageq = z[[1]],
+  lnwpred_ageqSE = z[[2]],
+  lnwpred_ageqCIUP = lnwpred_ageq + 2 * lnwpred_ageqSE,
+  lnwpred_ageqCILO = lnwpred_ageq - 2 * lnwpred_ageqSE
+)
+
+# for spline
+z <- predict(reg5_9, data, se.fit = TRUE)
+data <- data  |>  mutate(
+  lnwpred_agesp = predict(reg5, data),
+  lnwpred_agespSE = z[[2]],
+  lnwpred_agespCIUP = lnwpred_agesp + 2 * lnwpred_agespSE,
+  lnwpred_agespCILO = lnwpred_agesp - 2 * lnwpred_agespSE
+)
+
+# for lowess
+data <- data  |>  mutate(lnwpred_agel = predict(reg6_9, data))
+
+# plotting log hourly wage and age: regressions that capture nonlinearity
+p4 <- ggplot(data = data, aes(x = age)) +
+  geom_line(aes(y = lnwpred_agel, color = "Lowess", linetype = "Lowess"), size = 0.8) +
+  geom_line(aes(y = lnwpred_ageq, color = "Quadratic", linetype = "Quadratic"), size = 0.8) +
+  geom_line(aes(y = lnwpred_agesp, color = "Piecewise linear spline", linetype = "Piecewise linear spline"), size = 0.8) +
+  scale_color_manual(name = "", values = c(color[1], color[2], color[3])) +
+  scale_linetype_manual(name = "", values = c("solid", "dashed", "dotted")) +
+  scale_x_continuous(expand = c(0.01, 0.01), limits = c(20, 65), breaks = seq(20, 65, by = 5)) +
+  scale_y_continuous(expand = c(0.01, 0.01), limits = c(2.4, 3.6), breaks = seq(2.4, 3.6, by = 0.20)) +
+  labs(x = "Age (years)", y = "ln(earnings per hour)") +
+  theme_bg() +
+  theme(
+    legend.position = c(0.55, 0.1),
+    legend.direction = "horizontal",
+    legend.text = element_text(size = 3),
+    legend.key.width = unit(.8, "cm"),
+    legend.key.height = unit(.2, "cm")
+  ) +
+  guides(linetype = guide_legend(override.aes = list(size = 0.6)))
+p4
+
+# plotting log hourly wage and age: regressions with CI
+p5 <- ggplot(data = data, aes(x = age)) +
+  geom_line(aes(y = lnwpred_agel, color = "Lowess", linetype = "Lowess"), size = 1.2) +
+  geom_line(aes(y = lnwpred_ageq, color = "Quadratic", linetype = "Quadratic"), size = 1.2) +
+  geom_line(aes(y = lnwpred_ageqCIUP, color = "Quadratic", linetype = "Quadratic"), size = 0.6) +
+  geom_line(aes(y = lnwpred_ageqCILO, color = "Quadratic", linetype = "Quadratic"), size = 0.6) +
+  geom_ribbon(aes(ymin = lnwpred_ageqCILO, ymax = lnwpred_ageqCIUP), alpha = 0.2, bg = color[3]) +
+  geom_line(aes(y = lnwpred_agesp, color = "Piecewise linear spline", linetype = "Piecewise linear spline"), size = 1.2) +
+  geom_line(aes(y = lnwpred_agespCIUP, color = "Piecewise linear spline", linetype = "Piecewise linear spline"), size = 0.6) +
+  geom_line(aes(y = lnwpred_agespCILO, color = "Piecewise linear spline", linetype = "Piecewise linear spline"), size = 0.6) +
+  geom_ribbon(aes(ymin = lnwpred_agespCILO, ymax = lnwpred_agespCIUP), alpha = 0.2, bg = color[2]) +
+  coord_cartesian(xlim = c(20, 65), ylim = c(2.6, 3.6)) +
+  scale_x_continuous(expand = c(0.01, 0.01), limits = c(20, 65), breaks = seq(20, 65, by = 5)) +
+  scale_y_continuous(expand = c(0.01, 0.01), limits = c(2.4, 3.6), breaks = seq(2.4, 3.6, by = 0.20)) +
+  labs(x = "Age (years)", y = "ln(earnings per hour)") +
+  scale_color_manual(name = "", values = c(color[1], color[2], color[3])) +
+  scale_linetype_manual(name = "", values = c("solid", "dashed", "dotted")) +
+  theme_bg() +
+  theme(
+    legend.position = c(0.65, 0.1),
+    legend.direction = "horizontal",
+    legend.text = element_text(size = 4),
+    legend.key.width = unit(.8, "cm"),
+    legend.key.height = unit(.2, "cm")
+  ) +
+  guides(linetype = guide_legend(override.aes = list(size = 0.6)))
+p5
 ```
 
 # Linting
