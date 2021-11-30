@@ -1907,9 +1907,9 @@ hotels$predprice <- predict(regression)
 hotels$e <- resid(regression)
 
 # values for annotation
-xa<- 2.9
-ya<- 208
-ym<- 90.24
+xa <- 2.9
+ya <- 208
+ym <- 90.24
 
 # plotting the regression line and the residual
 p1 <- ggplot(data = hotels, aes(x = distance, y = price)) +
@@ -1941,14 +1941,14 @@ p2 <- ggplot(data = hotels, aes(x = e)) +
 p2
 
 # calculating predicted values and the residuals
-reg1 <- lm(price ~ distance, data = hotels)
-summary(reg1)
+reg1_7 <- lm(price ~ distance, data = hotels)
+summary(reg1_7)
 
 # creating new variables
-hotels$reg1_resid <- reg1$residuals
-hotels$reg1_res <- ifelse(reg1$residuals >= 0, "overpriced", "underpriced")
-hotels$reg1_res <- ifelse(hotels$reg1_resid %in% tail(sort(reg1$residuals, decreasing = TRUE), 5), "bottom5",
-  ifelse(hotels$reg1_resid %in% head(sort(reg1$residuals, decreasing = TRUE), 5), "top5", hotels$reg1_res)
+hotels$reg1_resid <- reg1_7$residuals
+hotels$reg1_res <- ifelse(reg1_7$residuals >= 0, "overpriced", "underpriced")
+hotels$reg1_res <- ifelse(hotels$reg1_resid %in% tail(sort(reg1_7$residuals, decreasing = TRUE), 5), "bottom5",
+  ifelse(hotels$reg1_resid %in% head(sort(reg1_7$residuals, decreasing = TRUE), 5), "top5", hotels$reg1_res)
 )
 
 # creating new data set
@@ -2088,14 +2088,14 @@ summary(hotels$price)
 summary(hotels$lnprice)
 
 # running linear regressions on non-log/log variables
-reg1 <- lm(price ~ distance, data = hotels)
-summary(reg1)
-reg2 <- lm(price ~ lndistance, data = hotels)
-summary(reg2)
-reg3 <- lm(lnprice ~ distance, data = hotels)
-summary(reg3)
-reg4 <- lm(lnprice ~ lndistance, data = hotels)
-summary(reg4)
+reg1_7 <- lm(price ~ distance, data = hotels)
+summary(reg1_7)
+reg2_7 <- lm(price ~ lndistance, data = hotels)
+summary(reg2_7)
+reg3_7 <- lm(lnprice ~ distance, data = hotels)
+summary(reg3_7)
+reg4_7 <- lm(lnprice ~ lndistance, data = hotels)
+summary(reg4_7)
 
 # plotting LEVEL-LEVEL LINEAR REGRESSION
 p1 <- ggplot(data = hotels, aes(x = distance, y = price)) +
@@ -2200,8 +2200,8 @@ p2
 p1 | p2
 
 # running linear regression
-reg1 <- lm(lifeexp ~ gdppc, data = xc)
-summary(reg1)
+reg1_8 <- lm(lifeexp ~ gdppc, data = xc)
+summary(reg1_8)
 
 # plotting LEVEL-LEVEL REGRESSION
 p3 <- ggplot(
@@ -2219,8 +2219,8 @@ p3 <- ggplot(
 p3
 
 # running linear regression log per capita
-reg2 <- lm(lifeexp ~ lngdppc, data = xc)
-summary(reg2)
+reg2_8 <- lm(lifeexp ~ lngdppc, data = xc)
+summary(reg2_8)
 
 # plotting life expectancy and GDP log per capita
 p4 <- ggplot(
@@ -2253,8 +2253,8 @@ p5
 p4 | p5
 
 # running linear regression total GDP
-reg3 <- lm(lifeexp ~ gdptot, data = xc)
-summary(reg3)
+reg3_8 <- lm(lifeexp ~ gdptot, data = xc)
+summary(reg3_8)
 
 # plotting LEVEL-LEVEL REGRESSION (total GDP)
 p6 <- ggplot(
@@ -2272,8 +2272,8 @@ p6 <- ggplot(
 p6
 
 # running linear regression log total GDP
-reg4 <- lm(lifeexp ~ lngdptot, data = xc)
-summary(reg4)
+reg4_8 <- lm(lifeexp ~ lngdptot, data = xc)
+summary(reg4_8)
 
 # plotting LEVEL-LOG REGRESSION (total GDP)
 p7 <- ggplot(
@@ -2341,14 +2341,14 @@ cutoff <- 50
 cutoff_ln <- log(cutoff)
 
 # running piecewise linear spline regression on log
-reg5 <- lm(lifeexp ~ lspline::lspline(lngdppc, cutoff_ln), data = xc)
-summary(reg5)
+reg5_8 <- lm(lifeexp ~ lspline::lspline(lngdppc, cutoff_ln), data = xc)
+summary(reg5_8)
 
 # running test of coefficients to check differences in slope for the different segments (5.5 vs -0.3)
-lmtest::coeftest(reg5)
+lmtest::coeftest(reg5_8)
 
 # calculating the residuals and creating a new variable
-xc$e3 <- resid(reg5)
+xc$e3 <- resid(reg5_8)
 
 # calculating the predictions for the piecewise linear spline regression model 
 xc$sppred <- predict(lm(lifeexp ~ lspline::lspline(lngdppc, cutoff_ln), data = xc))
@@ -2373,11 +2373,11 @@ p1
 xc$lngdppc_sq <- xc$lngdppc^2
 
 # running the polynomial (quadratic) linear regression
-reg6 <- lm(lifeexp ~ lngdppc + lngdppc_sq, data = xc)
-summary(reg6)
+reg6_8 <- lm(lifeexp ~ lngdppc + lngdppc_sq, data = xc)
+summary(reg6_8)
 
 # calculating the residuals and creating a new variable
-xc$e6 <- resid(reg6)
+xc$e6 <- resid(reg6_8)
 
 # plotting a scatterplot with the polynomial (quadratic) nonlinear regression (in scale)
 p2 <- ggplot(data = xc, aes(x = gdppc, y = lifeexp)) +
@@ -2484,12 +2484,12 @@ The second potential case for weighting arises with aggregate data. Observations
 # CASE STUDY: How is Life Expectancy Related to the Average Income of a Country?
 
 # running linear regression (unweighted)
-reg7 <- lm(lifeexp ~ lngdppc, data = xc)
-summary(reg7)
+reg7_8 <- lm(lifeexp ~ lngdppc, data = xc)
+summary(reg7_8)
 
 # running linear regression (weighted)
-reg8 <- lm(lifeexp ~ lngdppc, data = xc, weights = population)
-summary(reg8)
+reg8_8 <- lm(lifeexp ~ lngdppc, data = xc, weights = population)
+summary(reg8_8)
 
 # plotting life expectancy and GDP per capita (unweighted)
 p1 <- ggplot(data = xc, aes(x = gdppc, y = lifeexp)) +
@@ -2612,15 +2612,15 @@ table(data$occ2012, data$female)
 
 # linear regressions (female binary)
 # plain SE
-reg1 <- lm(lnw ~ female, data)
-summary(reg1)
+reg1_9 <- lm(lnw ~ female, data)
+summary(reg1_9)
 
 # with robust SE (female binary)
-reg2 <- lm_robust(lnw ~ female, data = data, se_type = "HC1")
-summary(reg2)
+reg2_9 <- lm_robust(lnw ~ female, data = data, se_type = "HC1")
+summary(reg2_9)
 
 # comparing the two models
-msummary(list(reg1, reg2),
+msummary(list(reg1_9, reg2_9),
   fmt = "%.4f",
   gof_omit = "DF|Deviance|Log.Lik.|F|R2 Adj.|AIC|BIC",
   stars = c("*" = .05, "**" = .01)
@@ -2680,14 +2680,15 @@ The prediction interval for $y_j$ starts from the CI for $\hat y_j$ and adds the
 ```{r intervals-predicted-values}
 # CASE STUDY – Estimating Gender and Age Differences in Earnings
 # linear regression (age) and ci
-reg7_9 <- lm(lnw ~ age, data = data[data$sample == 1, ])
+# reg7_9 <- lm(lnw ~ age, data = data[data$sample == 1, ])
+reg7_9 <- lm(lnw ~ age, data = data)
 pred_confidence <- bind_cols(data, as_tibble(predict(reg7_9, data, interval = "confidence", level = 0.95)))
 
 # add PI for a linear regression
-pred_interval <- bind_cols(data, as_tibble(predict(reg7, data, interval = "prediction", level = 0.95)))
+pred_interval <- bind_cols(data, as_tibble(predict(reg7_9, data, interval = "prediction", level = 0.95)))
 
 # plotting log hourly wage and age: regression line and confidence interval (CI)
-p1 <- ggplot(data = pred_confidence %>% filter(data$lnw < 4.4 & data$lnw > 2), aes(x = age, y = lnw)) +
+p1 <- ggplot(data = pred_confidence  |>  filter(data$lnw < 4.4 & data$lnw > 2), aes(x = age, y = lnw)) +
   geom_point(color = color[1], size = 1, shape = 16, alpha = 0.8, show.legend = F, na.rm = TRUE) +
   geom_smooth(method = "lm", colour = color[2], se = F, size = 0.8, linetype = 1) +
   geom_line(data = pred_confidence, aes(x = age, y = lwr), size = 0.5, linetype = 2, colour = color[2]) +
@@ -2704,7 +2705,7 @@ p1 <- ggplot(data = pred_confidence %>% filter(data$lnw < 4.4 & data$lnw > 2), a
 p1
 
 # plotting log hourly wage and age: regression line and prediction interval (PI)
-p2 <- ggplot(data = pred_interval %>% filter(lnw < 4.4 & lnw > 2), aes(x = age, y = lnw)) +
+p2 <- ggplot(data = pred_interval  |>  filter(lnw < 4.4 & lnw > 2), aes(x = age, y = lnw)) +
   geom_point(color = color[1], size = 1, shape = 16, alpha = 0.8, show.legend = F, na.rm = TRUE) +
   geom_smooth(method = "lm", colour = color[2], se = F, size = 0.8, linetype = 1) +
   geom_line(data = pred_interval, aes(y = lwr), size = 0.5, linetype = 2, colour = color[2]) +
@@ -2742,7 +2743,7 @@ cm <- c(
 )
 
 # comparing models
-msummary(list(reg1, reg2, reg3, reg4, reg5),
+msummary(list(reg1_9, reg2_9, reg3_9, reg4_9, reg5_9),
   fmt = "%.3f",
   gof_omit = "DF|Deviance|Log.Lik.|F|R2 Adj.|AIC|BIC",
   stars = c("*" = .05, "**" = .01),
@@ -2772,7 +2773,7 @@ data <- data  |>  mutate(
 # for spline
 z <- predict(reg5_9, data, se.fit = TRUE)
 data <- data  |>  mutate(
-  lnwpred_agesp = predict(reg5, data),
+  lnwpred_agesp = predict(reg5_9, data),
   lnwpred_agespSE = z[[2]],
   lnwpred_agespCIUP = lnwpred_agesp + 2 * lnwpred_agespSE,
   lnwpred_agespCILO = lnwpred_agesp - 2 * lnwpred_agespSE
