@@ -141,22 +141,6 @@ if (Sys.getenv("RSTUDIO") == "1") {
 # checkpoint/vignettes/using-checkpoint-with-knitr.html
 # if you don't need a package, remove it from here (commenting not sufficient)
 # tidyverse: see https://blog.rstudio.org/2016/09/15/tidyverse-1-0-0/
-# cat("
-# library(rstudioapi)
-# library(tidyverse, warn.conflicts = FALSE) # ggplot2, dplyr, tidyr, readr, purrr, tibble, magrittr, readxl
-# library(scales) # scales for ggplot2
-# library(jsonlite) # json
-# library(desc)
-# library(lintr)",
-#   file = "manifest.R"
-# )
-```
-
-```{r echo=TRUE, message=FALSE, warning=FALSE}
-# from https://mran.revolutionanalytics.com/web/packages/\
-# checkpoint/vignettes/using-checkpoint-with-knitr.html
-# if you don't need a package, remove it from here (commenting not sufficient)
-# tidyverse: see https://blog.rstudio.org/2016/09/15/tidyverse-1-0-0/
 cat("
 library(rstudioapi)
 library(tidyverse, warn.conflicts = FALSE) # ggplot2, dplyr, tidyr, readr, purrr, tibble, magrittr, readxl
